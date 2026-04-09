@@ -1,0 +1,78 @@
+---
+title: "CLI reference"
+description: "All flags and options for the browserwire command."
+---
+
+## Usage
+
+```bash
+browserwire [options]
+```
+
+Run without installing using npx:
+
+```bash
+npx browserwire [options]
+```
+
+## Flags
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--host` | Address the server listens on | `127.0.0.1` |
+| `--port` | Port the server listens on | `8787` |
+| `--debug` | Enable verbose debug logging | `false` |
+| `--llm-provider` | LLM provider to use: `openai`, `anthropic`, `gemini`, or `ollama` | — |
+| `--llm-api-key` | API key for the selected LLM provider | — |
+| `--extension-path` | Print the path to the bundled Chrome extension directory and exit | — |
+| `--help` | Show usage information and exit | — |
+
+## Configuration precedence
+
+CLI flags take the highest precedence. When the same option is set in multiple places, the order is:
+
+**CLI flags** > **environment variables / `.env`** > **`~/.browserwire/config.json`** > **defaults**
+
+This means a `--port` flag always overrides `BROWSERWIRE_PORT` in your environment, which in turn overrides the value in your config file.
+
+## Examples
+
+Start the server with defaults:
+
+```bash
+browserwire
+```
+
+Start on a different port:
+
+```bash
+browserwire --port 3000
+```
+
+Start on all interfaces (accessible from other devices on the network):
+
+```bash
+browserwire --host 0.0.0.0
+```
+
+Start with a specific LLM provider:
+
+```bash
+browserwire --llm-provider anthropic --llm-api-key sk-ant-...
+```
+
+Start with debug logging enabled:
+
+```bash
+browserwire --debug
+```
+
+Print the bundled extension path (for loading it in Chrome):
+
+```bash
+browserwire --extension-path
+```
+
+<Note>
+  `BROWSERWIRE_LLM_PROVIDER` and `BROWSERWIRE_LLM_API_KEY` are required for discovery to work. If you prefer not to use flags, set them as environment variables or in `~/.browserwire/config.json`.
+</Note>

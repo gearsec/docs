@@ -1,0 +1,57 @@
+---
+title: "BrowserWire"
+description: "A contract layer between AI agents and websites. Discover typed APIs from any live web page — no scraping, no manual wiring."
+---
+
+BrowserWire watches you browse a site and builds a versioned manifest of everything the page can do — entities, actions, views, and workflows — served as a REST API your AI agent already knows how to call.
+
+```
+You browse a site → BrowserWire watches → You get a typed API
+```
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Install BrowserWire and discover your first site in minutes
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/overview">
+    Full REST API reference with request and response examples
+  </Card>
+  <Card title="LLM Providers" icon="brain" href="/configuration/llm-providers">
+    Connect OpenAI, Anthropic, Gemini, or Ollama
+  </Card>
+  <Card title="Agent Integration" icon="robot" href="/guides/agent-integration">
+    Feed discovered APIs to your AI agent
+  </Card>
+</CardGroup>
+
+## How it works
+
+<Steps>
+  <Step title="Install & configure">
+    Install the BrowserWire CLI and set your LLM provider API key.
+  </Step>
+  <Step title="Load the Chrome extension">
+    Load the bundled extension in developer mode to capture page interactions.
+  </Step>
+  <Step title="Explore a site">
+    Open any website, start an exploration session, and navigate around. BrowserWire watches what's on the page and what you can do with it.
+  </Step>
+  <Step title="Call the API">
+    Get an OpenAPI spec for the discovered site. Point your agent at it — or call actions and workflows directly over REST.
+  </Step>
+</Steps>
+
+<CardGroup cols={2}>
+  <Card title="Discover a Site" icon="magnifying-glass" href="/guides/discover-a-site">
+    Step-by-step walkthrough of an exploration session
+  </Card>
+  <Card title="Desktop App" icon="desktop" href="/guides/desktop-app">
+    Use the native desktop app for an integrated experience
+  </Card>
+  <Card title="Core Concepts" icon="book" href="/concepts/manifest">
+    Understand manifests, entities, actions, and workflows
+  </Card>
+  <Card title="CLI Reference" icon="terminal" href="/reference/cli">
+    All CLI flags and options
+  </Card>
+</CardGroup>

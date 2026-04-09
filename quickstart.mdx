@@ -1,0 +1,116 @@
+---
+title: "Quick Start"
+description: "Install BrowserWire, load the Chrome extension, and discover your first site's API in minutes."
+---
+
+This guide walks you through installing BrowserWire, connecting the Chrome extension, and making your first API call against a discovered site.
+
+<Steps>
+  <Step title="Install the CLI">
+    Install BrowserWire globally with npm:
+
+    ```bash
+    npm install -g browserwire
+    ```
+
+    Or run it directly without installing:
+
+    ```bash
+    npx browserwire
+    ```
+  </Step>
+
+  <Step title="Load the Chrome extension">
+    The Chrome extension is bundled with the CLI. First, get the path to the extension directory:
+
+    ```bash
+    npx browserwire --extension-path
+    ```
+
+    Then load it in Chrome:
+
+    1. Go to `chrome://extensions`
+    2. Enable **Developer mode** using the toggle in the top right
+    3. Click **Load unpacked**
+    4. Select the path printed by the command above
+
+    <Note>
+      The Chrome Web Store release is in progress. For now, the extension must be loaded as an unpacked extension in developer mode.
+    </Note>
+  </Step>
+
+  <Step title="Configure your LLM provider">
+    BrowserWire uses a vision-capable LLM to perceive page content during discovery. Set your provider and API key as environment variables:
+
+    ```bash
+    export BROWSERWIRE_LLM_PROVIDER=openai   # openai | anthropic | gemini | ollama
+    export BROWSERWIRE_LLM_API_KEY=sk-...
+    ```
+
+    Supported providers and their default models:
+
+    | Provider | Default model | Requires API key |
+    |----------|---------------|------------------|
+    | `openai` | `gpt-4o` | Yes |
+    | `anthropic` | `claude-sonnet-4-20250514` | Yes |
+    | `gemini` | `gemini-2.5-flash` | Yes |
+    | `ollama` | `llama3` | No |
+
+    <Tip>
+      You can also set these in a `.env` file in your working directory, or in `~/.browserwire/config.json`. See [Installation](/installation) for all configuration options.
+    </Tip>
+  </Step>
+
+  <Step title="Start the server">
+    ```bash
+    browserwire
+    ```
+
+    The server starts on `http://127.0.0.1:8787` by default. You can open the API docs landing page at `http://127.0.0.1:8787/api/docs`.
+  </Step>
+
+  <Step title="Discover a site">
+    With the server running and the Chrome extension loaded:
+
+    1. Open any website in Chrome
+    2. Click the BrowserWire extension icon to open the sidepanel
+    3. Click **Start Exploring** and navigate around the site
+    4. Click **Stop Exploring** when you're done — BrowserWire builds the manifest in the background
+
+    The site will appear in the API once discovery finishes.
+  </Step>
+
+  <Step title="Query the discovered API">
+    List all sites you've discovered:
+
+    ```bash
+    curl http://localhost:8787/api/sites
+    ```
+
+    Fetch the OpenAPI spec for a specific site (replace `example-com` with your site's slug):
+
+    ```bash
+    curl http://localhost:8787/api/sites/example-com/openapi.json
+    ```
+
+    The slug is the domain with dots replaced by hyphens — for example, `example.com` becomes `example-com`.
+
+    <Tip>
+      Point your tool-using LLM directly at the OpenAPI spec URL. It contains all discovered actions with typed input schemas your agent can call without any manual wiring.
+    </Tip>
+  </Step>
+</Steps>
+
+## What's next
+
+Once a site is discovered, you can execute actions through the REST API. For example, to call a `submit_login` workflow:
+
+```bash
+curl -X POST http://localhost:8787/api/sites/example-com/workflows/submit_login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "user@example.com", "password": "secret"}'
+```
+
+BrowserWire routes the action through the Chrome extension, which executes it on the live page using the discovered locators.
+
+You can also browse interactive Swagger docs for any discovered site at `http://localhost:8787/api/sites/example-com/docs`.

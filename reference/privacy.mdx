@@ -1,0 +1,38 @@
+---
+title: "Privacy"
+description: "How BrowserWire handles your data — all processing is local, nothing leaves your machine."
+---
+
+## Everything stays on your machine
+
+BrowserWire is designed to run entirely on your local device. The extension communicates only with the BrowserWire server running on localhost — no data is sent to external servers, cloud services, or third parties.
+
+This means:
+
+- No analytics or telemetry collection
+- No usage tracking
+- No advertising
+- No data sharing of any kind
+
+## The `<all_urls>` permission
+
+When you install the Chrome extension, you'll see that it requests permission to run on all websites. This permission is required because BrowserWire needs to inject its content script on any site you choose to explore.
+
+The extension **only activates when you explicitly start an exploration session** from the side panel. It does not run in the background, monitor your browsing, or collect anything while you're not actively using it.
+
+## What gets stored and where
+
+| Data | Where it's stored |
+|------|------------------|
+| Connection preferences (WebSocket host and port) | `chrome.storage.local` — on your device, inside Chrome |
+| Discovered APIs, snapshots, and manifests | Local filesystem, written by the CLI server |
+
+The extension itself does not write manifests or snapshots. That work is handled by the CLI server running on your machine, and everything it writes stays in your local filesystem.
+
+## DOM snapshot recording
+
+BrowserWire bundles [rrweb-record](https://github.com/rrweb-io/rrweb) (MIT license) to capture DOM snapshots during an exploration session. This library runs entirely client-side inside the extension's content script. It does not communicate with any external service.
+
+<Info>
+  If you have questions about privacy or data handling, open an issue at [github.com/gearsec/browserwire](https://github.com/gearsec/browserwire).
+</Info>

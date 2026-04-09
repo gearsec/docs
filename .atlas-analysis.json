@@ -1,0 +1,115 @@
+{
+  "projectType": "cli-tool",
+  "projectName": "BrowserWire",
+  "projectDescription": "A contract layer between AI agents and websites — auto-discovers typed APIs from live web pages so agents can call structured operations instead of scraping the DOM.",
+  "theme": "luma",
+  "primaryColor": "#848c8e",
+  "lightColor": "#11161e",
+  "darkColor": "#cfd0d2",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "installation"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/manifest",
+              "concepts/discovery",
+              "concepts/workflows"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "configuration/llm-providers",
+              "configuration/settings"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/discover-a-site",
+              "guides/agent-integration",
+              "guides/desktop-app"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": [
+              "reference/cli",
+              "reference/privacy",
+              "reference/faq"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api/overview"
+            ]
+          },
+          {
+            "group": "Endpoints",
+            "pages": [
+              "api/health",
+              "api/sites",
+              "api/manifest",
+              "api/openapi",
+              "api/actions",
+              "api/workflows"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Vision LLM-powered API discovery from live web pages",
+    "Auto-generates OpenAPI 3.0 specs from discovered site interactions",
+    "Chrome extension captures browsing sessions for analysis",
+    "REST API server for executing discovered actions",
+    "Desktop Electron app with embedded browser for visual discovery",
+    "Support for OpenAI, Anthropic, Gemini, and Ollama LLM providers",
+    "Versioned manifests with semver-compatible contract diffing",
+    "Swagger UI per discovered site for interactive exploration"
+  ],
+  "publicApiSurface": [
+    "GET /api/health",
+    "GET /api/sites",
+    "GET /api/docs",
+    "GET /api/sites/:slug/manifest",
+    "GET /api/sites/:slug/openapi.json",
+    "GET /api/sites/:slug/docs",
+    "GET /api/sites/:slug/views/:name",
+    "POST /api/sites/:slug/actions/:name",
+    "POST /api/sites/:slug/workflows/:name",
+    "browserwire CLI (npx browserwire)",
+    "browserwire --host, --port, --debug flags",
+    "browserwire --llm-provider, --llm-api-key flags",
+    "browserwire --extension-path flag",
+    "BROWSERWIRE_LLM_PROVIDER env var",
+    "BROWSERWIRE_LLM_API_KEY env var",
+    "BROWSERWIRE_LLM_MODEL env var",
+    "BROWSERWIRE_LLM_BASE_URL env var",
+    "BROWSERWIRE_HOST env var",
+    "BROWSERWIRE_PORT env var",
+    "~/.browserwire/config.json config file",
+    "BrowserWireManifest TypeScript type",
+    "WorkflowActionDef TypeScript type",
+    "ActionDef TypeScript type",
+    "ViewDef TypeScript type"
+  ]
+}

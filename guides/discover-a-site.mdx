@@ -1,0 +1,131 @@
+---
+title: "Discover a site"
+description: "A step-by-step walkthrough of running a BrowserWire exploration session to build a typed API from any website."
+---
+
+Discovery is how BrowserWire learns what a site can do. You browse normally while BrowserWire watches, then it compiles everything it observed into a versioned manifest — entities, actions, views, and workflows — served as a REST API.
+
+## Prerequisites
+
+Before you start, make sure you have:
+
+- The BrowserWire CLI installed (`npm install -g browserwire`) and an LLM provider configured
+- The BrowserWire Chrome extension loaded in developer mode (run `npx browserwire --extension-path` to get the path, then load it via `chrome://extensions`)
+- Chrome open and ready
+
+## Discovery walkthrough
+
+<Steps>
+  <Step title="Start the BrowserWire server">
+    In your terminal, run:
+
+    ```bash
+    browserwire
+    ```
+
+    The server starts on `http://127.0.0.1:8787`. You should see a confirmation message with the address. Leave this terminal running throughout your session.
+
+    <Tip>
+      You can verify the server is healthy at any time with `curl http://localhost:8787/api/health`.
+    </Tip>
+  </Step>
+
+  <Step title="Open Chrome and navigate to the target site">
+    Open Chrome and go to the site you want to discover. Log in if needed — BrowserWire can capture authenticated pages just as well as public ones.
+  </Step>
+
+  <Step title="Open the BrowserWire side panel">
+    Click the BrowserWire extension icon in the Chrome toolbar. This opens the side panel. If the icon isn't visible, click the puzzle-piece icon and pin BrowserWire.
+  </Step>
+
+  <Step title='Click "Start Exploring"'>
+    In the side panel, click **Start Exploring**.
+
+    Once active, the extension begins capturing everything it can see on the page: visible UI elements, form fields, buttons, navigation links, and interactive controls. A snapshot counter in the panel shows how many page states have been captured so far.
+
+    <Note>
+      The extension only captures data while a session is active. It does not run in the background between sessions or send data anywhere except your local BrowserWire server.
+    </Note>
+  </Step>
+
+  <Step title="Navigate the site to expose actions and UI">
+    Browse the site the way an agent would need to use it. The more ground you cover, the richer the manifest will be.
+
+    Focus on:
+
+    - **Login and signup forms** — navigate to the form, but you don't need to submit it
+    - **Primary navigation** — click through the main sections of the site
+    - **Key actions** — open modals, expand menus, trigger search, click call-to-action buttons
+    - **Data-heavy views** — tables, listings, dashboards that agents might need to read
+
+    <Tip>
+      You don't need to interact with every element. Navigating to a page and letting it fully load is enough for BrowserWire to capture its structure. Interacting with elements (hovering, clicking) captures additional state like dropdowns and tooltips.
+    </Tip>
+  </Step>
+
+  <Step title='Click "Stop Exploring"'>
+    When you've covered the pages you care about, click **Stop Exploring** in the side panel.
+
+    BrowserWire sends the captured snapshots to the CLI server, which uses your configured LLM to analyze the page content, synthesize reliable element locators, and compile the manifest. This processing happens in the background — you'll see progress in the terminal.
+  </Step>
+
+  <Step title="Verify the manifest was built">
+    Once processing finishes, confirm your site appears in the API:
+
+    ```bash
+    curl http://localhost:8787/api/sites
+    ```
+
+    You should see a response listing your site with its slug, origin URL, and counts of discovered states, views, and actions:
+
+    ```json
+    {
+      "ok": true,
+      "sites": [
+        {
+          "slug": "example-com",
+          "origin": "https://example.com",
+          "stateCount": 12,
+          "viewCount": 5,
+          "actionCount": 8
+        }
+      ]
+    }
+    ```
+
+    The slug is derived from the site's origin (e.g., `https://example.com` → `example-com`).
+  </Step>
+
+  <Step title="View the interactive API docs">
+    Open the Swagger UI to browse and test everything BrowserWire discovered:
+
+    ```bash
+    open http://localhost:8787/api/sites/example-com/docs
+    ```
+
+    Replace `example-com` with your site's actual slug. The Swagger UI lets you test views, actions, and workflows directly in the browser before connecting an agent.
+  </Step>
+</Steps>
+
+## What gets captured
+
+A discovery session builds a manifest containing:
+
+| Type | Description |
+|------|-------------|
+| **Entities** | Data types the site works with (users, products, orders, etc.) |
+| **Views** | Read operations — pages or components that return structured data |
+| **Actions** | Write operations — buttons, form submissions, and other UI interactions |
+| **Workflows** | Multi-step sequences that combine actions in order (e.g., fill and submit a login form) |
+
+## Tips for better discovery results
+
+**Cover the critical paths first.** Start with the flows your agent will actually need to execute — login, core navigation, and the primary actions. You can always run additional sessions to add more coverage.
+
+**Navigate slowly and let pages load.** BrowserWire captures snapshots as pages settle. Clicking too quickly through pages may miss elements that load asynchronously.
+
+**Interact with dynamic UI.** Open dropdown menus, expand accordions, and trigger any state changes that reveal additional controls. These exposed elements get added to the manifest.
+
+**Re-run sessions to improve coverage.** Each session is additive. Running a second session on the same site merges new observations into the existing manifest, so you can build up coverage incrementally.
+
+**Use a real account.** If the site has authenticated features, log in before starting exploration. BrowserWire captures whatever the browser can see — unauthenticated sessions will miss protected pages.

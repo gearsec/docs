@@ -1,0 +1,90 @@
+---
+title: "Desktop app"
+description: "Use the BrowserWire native desktop app for an integrated discovery and testing experience without a separate Chrome extension."
+---
+
+BrowserWire is also available as a native desktop application built on Electron. The desktop app gives you a fully integrated experience: an embedded Chromium browser pane, discovery controls, session history, and action testing — all in one window, with no need to separately install the Chrome extension.
+
+## What's different about the desktop app
+
+With the CLI, you install the Chrome extension separately and use a Chrome sidepanel to control discovery. The desktop app replaces both:
+
+- The embedded browser pane is fully instrumented — no extension installation needed
+- Discovery controls sit alongside the browser in the same window
+- The same REST API runs on port `8787`, so any agent or tooling that works with the CLI also works with the desktop app
+
+The desktop app and CLI share the same manifest store, so sites discovered in one are immediately available in the other.
+
+## Getting started
+
+Download the latest release for your platform from the [BrowserWire releases page](https://github.com/gearsec/browserwire/releases). Open the downloaded file and follow the standard installation steps for your OS.
+
+<Note>
+  On macOS, if you see a Gatekeeper warning on first launch, right-click the app and choose **Open** to bypass it.
+</Note>
+
+## Configuring your LLM provider
+
+Before you can run a discovery session, you need to configure an LLM provider. The desktop app needs a vision-capable model to analyze page content during discovery.
+
+1. Open **Settings** from the menu bar (**BrowserWire → Settings**) or press `Cmd+,` / `Ctrl+,`
+2. In the **Settings** panel, select your LLM provider (OpenAI, Anthropic, Gemini, or Ollama)
+3. Enter your API key
+4. Save your settings
+
+| Provider | Default model | Requires API key |
+|----------|--------------|-----------------|
+| OpenAI | `gpt-4o` | Yes |
+| Anthropic | `claude-sonnet-4-20250514` | Yes |
+| Gemini | `gemini-2.5-flash` | Yes |
+| Ollama | `llama3` | No |
+
+<Tip>
+  Ollama lets you run a local model with no API key. It's a good option for offline use or if you want to avoid sending page content to a third-party provider.
+</Tip>
+
+## Panels
+
+The desktop app has four main panels, accessible from the activity bar on the left side of the window.
+
+### Discovery
+
+The default view. The embedded browser takes up most of the window, with a control panel on the right.
+
+- Use the address bar at the top to navigate to a site
+- Click **Start Exploring** to begin a session — the browser is now instrumented and capturing
+- Browse the site normally: navigate pages, open menus, interact with forms
+- Click **Stop Exploring** when done — the app processes the session and builds the manifest
+
+The right panel shows a live snapshot count while exploring, so you can see that captures are happening.
+
+### History
+
+Review past exploration sessions. Select a session to see what was captured: which pages were visited, how many snapshots were taken, and the resulting manifest content.
+
+After you stop exploring, the app switches to the History panel automatically and selects the session you just completed.
+
+### Execution
+
+Test discovered actions and workflows directly from the desktop app, without needing to use `curl` or a separate API client. Select a site, choose an operation, fill in any inputs, and run it — the embedded browser executes the action on the live page.
+
+### Settings
+
+Configure your LLM provider, API key, and other preferences. Changes take effect for the next discovery session.
+
+## The REST API
+
+The BrowserWire server runs on port `8787` while the desktop app is open, exposing the same REST API as the CLI:
+
+```bash
+# List discovered sites
+curl http://localhost:8787/api/sites
+
+# Get the OpenAPI spec
+curl http://localhost:8787/api/sites/example-com/openapi.json
+
+# View interactive Swagger docs
+open http://localhost:8787/api/sites/example-com/docs
+```
+
+Any agent or integration built against the CLI API works identically with the desktop app.

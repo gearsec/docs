@@ -1,0 +1,61 @@
+---
+title: "FAQ"
+description: "Answers to common questions about BrowserWire."
+---
+
+<AccordionGroup>
+  <Accordion title="What LLM providers does BrowserWire support?">
+    BrowserWire supports four providers:
+
+    | Provider | Default model | API key required |
+    |----------|--------------|-----------------|
+    | `openai` | `gpt-4o` | Yes |
+    | `anthropic` | `claude-sonnet-4-20250514` | Yes |
+    | `gemini` | `gemini-2.5-flash` | Yes |
+    | `ollama` | `llama3` | No |
+
+    Ollama runs locally, so no API key is needed. Set your provider with the `BROWSERWIRE_LLM_PROVIDER` environment variable or the `--llm-provider` flag.
+  </Accordion>
+
+  <Accordion title="Does BrowserWire send my browsing data anywhere?">
+    No. All processing happens locally on your machine. The extension communicates only with the BrowserWire server running on localhost. No data is sent to external servers, and there is no analytics or telemetry of any kind.
+
+    See the [Privacy](/reference/privacy) page for full details.
+  </Accordion>
+
+  <Accordion title="Why does the extension need the <all_urls> permission?">
+    BrowserWire needs to inject its content script on any site you choose to discover APIs from. Because you can point it at any website, the extension must be allowed to run on all URLs.
+
+    The extension only activates when you explicitly start an exploration session from the side panel — it does not run in the background or monitor your browsing.
+  </Accordion>
+
+  <Accordion title="What's the difference between actions and workflows?">
+    **Actions** are individual UI operations — clicking a button, filling in a field, selecting an option.
+
+    **Workflows** are multi-step sequences that chain actions together to accomplish a complete task, such as logging in or submitting a form. When you call a workflow over the REST API, BrowserWire executes each action in sequence on the live page.
+  </Accordion>
+
+  <Accordion title="Can I use BrowserWire with any website?">
+    Yes. BrowserWire works with any website you can open in Chrome. The quality of what gets discovered depends on how much you interact with the site during the exploration session — the more you navigate and use the UI, the more entities and actions BrowserWire can capture.
+  </Accordion>
+
+  <Accordion title="How do I update the manifest for a site?">
+    Run another exploration session on the same site. BrowserWire will update the existing manifest with any newly discovered entities and actions. You don't need to delete the old manifest first.
+  </Accordion>
+
+  <Accordion title="The server isn't starting. What should I check?">
+    Check the following:
+
+    1. Make sure `BROWSERWIRE_LLM_PROVIDER` and `BROWSERWIRE_LLM_API_KEY` are set (or passed as CLI flags).
+    2. Check that port `8787` isn't already in use by another process.
+    3. Run `browserwire --help` to see all available options and confirm your flags are correct.
+
+    <Tip>
+      Run `browserwire --debug` for verbose logging that can help identify the problem.
+    </Tip>
+  </Accordion>
+
+  <Accordion title="Can I run BrowserWire headlessly?">
+    The CLI server itself is headless and runs without a browser. However, discovery requires an active Chrome session — either through the Chrome extension or the desktop app's embedded browser — because BrowserWire needs to observe real page interactions to build a manifest.
+  </Accordion>
+</AccordionGroup>

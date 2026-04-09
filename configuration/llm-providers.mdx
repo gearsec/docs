@@ -1,0 +1,124 @@
+---
+title: "LLM Providers"
+description: "Configure a vision-capable LLM so BrowserWire can perceive page content during discovery."
+---
+
+BrowserWire uses a vision-capable LLM to understand what's on the page as you explore a site. Without a configured provider, discovery will not run.
+
+## Supported providers
+
+| Provider | Default model | Requires API key |
+|----------|---------------|-----------------|
+| `openai` | `gpt-4o` | Yes |
+| `anthropic` | `claude-sonnet-4-20250514` | Yes |
+| `gemini` | `gemini-2.5-flash` | Yes |
+| `ollama` | `llama3` | No |
+
+## Set your provider
+
+You can configure the LLM through environment variables, a `.env` file, or a config file. Environment variables and `.env` take precedence over the config file.
+
+<Tabs>
+  <Tab title="Environment variables">
+    Set these before starting the server:
+
+    ```bash
+    export BROWSERWIRE_LLM_PROVIDER=openai
+    export BROWSERWIRE_LLM_API_KEY=sk-...
+    ```
+
+    You can also place them in a `.env` file in your working directory — BrowserWire loads it automatically on startup.
+  </Tab>
+  <Tab title="Config file">
+    Create or edit `~/.browserwire/config.json`:
+
+    ```json
+    {
+      "llmProvider": "openai",
+      "llmApiKey": "sk-...",
+      "llmModel": "gpt-4o"
+    }
+    ```
+
+    The config file is merged with lower precedence than environment variables.
+  </Tab>
+</Tabs>
+
+## Per-provider setup
+
+<Tabs>
+  <Tab title="OpenAI">
+    ```bash
+    export BROWSERWIRE_LLM_PROVIDER=openai
+    export BROWSERWIRE_LLM_API_KEY=sk-...
+    ```
+
+    The default model is `gpt-4o`. You can override it with `BROWSERWIRE_LLM_MODEL`.
+  </Tab>
+  <Tab title="Anthropic">
+    ```bash
+    export BROWSERWIRE_LLM_PROVIDER=anthropic
+    export BROWSERWIRE_LLM_API_KEY=sk-ant-...
+    ```
+
+    The default model is `claude-sonnet-4-20250514`.
+  </Tab>
+  <Tab title="Gemini">
+    ```bash
+    export BROWSERWIRE_LLM_PROVIDER=gemini
+    export BROWSERWIRE_LLM_API_KEY=AIza...
+    ```
+
+    The default model is `gemini-2.5-flash`.
+  </Tab>
+  <Tab title="Ollama">
+    ```bash
+    export BROWSERWIRE_LLM_PROVIDER=ollama
+    ```
+
+    No API key is required. Ollama runs locally and BrowserWire connects to `http://localhost:11434` by default. The default model is `llama3`.
+
+    <Note>
+      Make sure Ollama is running and the model you want to use is already pulled (`ollama pull llama3`) before starting BrowserWire.
+    </Note>
+  </Tab>
+</Tabs>
+
+## Override the model
+
+To use a model other than the provider's default, set `BROWSERWIRE_LLM_MODEL`:
+
+```bash
+export BROWSERWIRE_LLM_PROVIDER=openai
+export BROWSERWIRE_LLM_API_KEY=sk-...
+export BROWSERWIRE_LLM_MODEL=gpt-4o-mini
+```
+
+Or in `~/.browserwire/config.json`:
+
+```json
+{
+  "llmProvider": "openai",
+  "llmApiKey": "sk-...",
+  "llmModel": "gpt-4o-mini"
+}
+```
+
+<Warning>
+  BrowserWire requires a model with vision capabilities. Using a text-only model will cause discovery to fail.
+</Warning>
+
+## Use a custom base URL
+
+`BROWSERWIRE_LLM_BASE_URL` overrides the API endpoint for the selected provider. This is useful for Ollama with a non-default address, or when routing through a proxy:
+
+```bash
+# Ollama on a different host or port
+export BROWSERWIRE_LLM_PROVIDER=ollama
+export BROWSERWIRE_LLM_BASE_URL=http://192.168.1.50:11434
+
+# OpenAI-compatible proxy
+export BROWSERWIRE_LLM_PROVIDER=openai
+export BROWSERWIRE_LLM_API_KEY=sk-...
+export BROWSERWIRE_LLM_BASE_URL=https://my-proxy.example.com/v1
+```

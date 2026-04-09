@@ -1,0 +1,121 @@
+---
+title: "Actions"
+description: "Read structured data from a page view, or execute a single UI action through the Chrome extension."
+---
+
+BrowserWire exposes two endpoint patterns for interacting with individual, discovered operations on a site: views for reading data and actions for executing interactions.
+
+---
+
+## Read a view
+
+### `GET /api/sites/:slug/views/:name`
+
+Navigates to the page state that contains the view and returns its structured data. The server routes the request through the Chrome extension, which reads the live DOM and returns typed field values.
+
+### Path parameters
+
+<ParamField path="slug" type="string" required>
+  The site identifier, e.g. `example-com`. Use `GET /api/sites` to list available slugs.
+</ParamField>
+
+<ParamField path="name" type="string" required>
+  The view name as it appears in the manifest and OpenAPI spec, e.g. `product_list`. Use `GET /api/sites/:slug/openapi.json` to see all available view names for a site.
+</ParamField>
+
+### Query parameters
+
+Inputs required to navigate to the view's page state are passed as query string parameters. The required parameters for each view are documented in the OpenAPI spec under the view's `parameters` array.
+
+### Example
+
+<CodeGroup>
+
+```bash Request
+curl "http://127.0.0.1:8787/api/sites/example-com/views/product_list"
+```
+
+```json Response
+{
+  "ok": true,
+  "data": [
+    { "name": "Widget Pro", "price": 49.99, "in_stock": true },
+    { "name": "Widget Lite", "price": 19.99, "in_stock": false }
+  ],
+  "state": "ProductsPage",
+  "steps": [
+    "navigate:https://example.com/products",
+    "view:product_list"
+  ]
+}
+```
+
+</CodeGroup>
+
+---
+
+## Execute an action
+
+### `POST /api/sites/:slug/actions/:name`
+
+Navigates to the page state that contains the action, then executes it using the locators and interaction strategy captured during discovery. The server sends the instruction to the Chrome extension, which performs the interaction on the live page.
+
+### Path parameters
+
+<ParamField path="slug" type="string" required>
+  The site identifier, e.g. `example-com`.
+</ParamField>
+
+<ParamField path="name" type="string" required>
+  The action name as it appears in the manifest and OpenAPI spec, e.g. `add_to_cart`. Use `GET /api/sites/:slug/openapi.json` to see all available action names and their input schemas.
+</ParamField>
+
+### Request body
+
+Action inputs are supplied as a JSON object. The required and optional fields are defined in the OpenAPI spec's `requestBody` schema for the operation.
+
+```json
+{
+  "quantity": 2
+}
+```
+
+### Example
+
+<CodeGroup>
+
+```bash Request
+curl -X POST http://127.0.0.1:8787/api/sites/example-com/actions/add_to_cart \
+  -H "Content-Type: application/json" \
+  -d '{"quantity": 2}'
+```
+
+```json Response
+{
+  "ok": true,
+  "state": "CartPage",
+  "steps": [
+    "navigate:https://example.com/products",
+    "action:add_to_cart"
+  ]
+}
+```
+
+</CodeGroup>
+
+## Error responses
+
+| Status | Body |
+|--------|------|
+| `404` | `{ "ok": false, "error": "View 'product_list' not found" }` |
+| `404` | `{ "ok": false, "error": "Action 'add_to_cart' not found" }` |
+| `400` | `{ "ok": false, "error": "Invalid JSON body" }` |
+| `500` | `{ "ok": false, "error": "<execution error message>" }` |
+
+<Warning>
+  Actions execute on the live browser tab. Make sure the Chrome extension is running and a matching tab is open before calling an action endpoint. If the extension is not connected, the request will time out or return a `500` error.
+</Warning>
+
+<Note>
+  Form-filling operations (filling fields and submitting a form together) are exposed as **workflows**, not individual actions. See the [Workflows](/api/workflows) page for details.
+</Note>

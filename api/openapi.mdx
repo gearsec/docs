@@ -1,0 +1,136 @@
+---
+title: "OpenAPI Spec"
+description: "Fetch the auto-generated OpenAPI 3.0 spec for a discovered site, ready to feed to a tool-using LLM or Swagger UI."
+---
+
+## `GET /api/sites/:slug/openapi.json`
+
+Returns an OpenAPI 3.0.3 specification generated from the site's manifest. The spec includes a path for every discovered view (as a `GET` operation) and every action and workflow (as `POST` operations), with full input schemas and response shapes.
+
+This endpoint is the primary integration point for AI agents — point your agent at this URL and it can discover and invoke all available operations without any manual wiring.
+
+## Path parameters
+
+<ParamField path="slug" type="string" required>
+  The site identifier. For example, `example-com` for `https://example.com`. Use `GET /api/sites` to list all available slugs.
+</ParamField>
+
+## Swagger UI
+
+An interactive Swagger UI for the same spec is available at:
+
+```
+GET /api/sites/:slug/docs
+```
+
+Open this URL in your browser to explore and manually test discovered endpoints.
+
+## Example
+
+<CodeGroup>
+
+```bash Request
+curl http://127.0.0.1:8787/api/sites/example-com/openapi.json
+```
+
+```json Response
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "example.com API",
+    "description": "Auto-generated API for https://example.com",
+    "version": "1.0.0"
+  },
+  "servers": [
+    { "url": "http://127.0.0.1:8787" }
+  ],
+  "paths": {
+    "/api/sites/example-com/views/product_list": {
+      "get": {
+        "operationId": "read_product_list",
+        "summary": "Read the list of products on the current page",
+        "tags": ["ProductsPage"],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": { "type": "string" },
+                          "price": { "type": "number" },
+                          "in_stock": { "type": "boolean" }
+                        }
+                      }
+                    },
+                    "state": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sites/example-com/workflows/submit_login": {
+      "post": {
+        "operationId": "workflow_submit_login",
+        "summary": "Fill and submit: fill_email → fill_password → submit_login_form",
+        "tags": ["LoginPage"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string" }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Workflow executed — all form actions replayed in order" }
+        }
+      }
+    }
+  }
+}
+```
+
+</CodeGroup>
+
+## Using the spec with an AI agent
+
+Most tool-using LLM frameworks can consume an OpenAPI spec directly. Point your agent at the spec URL and it will be able to call discovered operations by name:
+
+```python
+# Example: OpenAI with a custom tool loader
+import openai, requests
+
+spec = requests.get("http://127.0.0.1:8787/api/sites/example-com/openapi.json").json()
+
+# Pass the spec to your agent framework's OpenAPI tool loader.
+# The agent can now call read_product_list, workflow_submit_login, etc.
+```
+
+Each operation's `operationId`, `summary`, input schema, and response schema give the LLM enough context to choose and invoke the right operation without additional prompting.
+
+<Note>
+  The `servers` array in the spec points to `http://{host}:{port}`, reflecting the `--host` and `--port` values the server was started with. If you run BrowserWire on a non-default address, the spec's server URL updates automatically.
+</Note>
+
+## Error responses
+
+| Status | Body |
+|--------|------|
+| `404` | `{ "ok": false, "error": "No manifest found for site 'example-com'" }` |

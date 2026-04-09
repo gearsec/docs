@@ -1,0 +1,86 @@
+---
+title: "Workflows"
+description: "Execute a multi-step workflow — navigate, fill fields, and submit a form — in a single API call."
+---
+
+## `POST /api/sites/:slug/workflows/:name`
+
+Executes a workflow: an ordered sequence of steps (navigate, fill, select, click, submit) composed from discovered actions on a page. The server routes the instruction to the Chrome extension, which replays each step in order on the live page.
+
+Workflows are the recommended way to perform form submissions and multi-input interactions. Rather than issuing individual action calls for each field, you supply all inputs in one request body and BrowserWire coordinates the full sequence.
+
+## Path parameters
+
+<ParamField path="slug" type="string" required>
+  The site identifier, e.g. `example-com`. Use `GET /api/sites` to list available slugs.
+</ParamField>
+
+<ParamField path="name" type="string" required>
+  The workflow name as it appears in the manifest and OpenAPI spec, e.g. `submit_login`. Use `GET /api/sites/:slug/openapi.json` to see all available workflow names and their input schemas.
+</ParamField>
+
+## Request body
+
+All workflow inputs in a single flat JSON object. The required and optional fields differ per workflow and are documented in the OpenAPI spec's `requestBody` schema for the operation.
+
+```json
+{
+  "email": "user@example.com",
+  "password": "hunter2"
+}
+```
+
+## Example
+
+<CodeGroup>
+
+```bash Request
+curl -X POST http://127.0.0.1:8787/api/sites/example-com/workflows/submit_login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "user@example.com", "password": "hunter2"}'
+```
+
+```json Response
+{
+  "ok": true,
+  "state": "DashboardPage",
+  "steps": [
+    "navigate:https://example.com/login",
+    "action:fill_email",
+    "action:fill_password",
+    "action:submit_login_form"
+  ]
+}
+```
+
+</CodeGroup>
+
+## Response fields
+
+<ResponseField name="ok" type="boolean" required>
+  `true` on success.
+</ResponseField>
+
+<ResponseField name="state" type="string">
+  The page state the browser is in after the workflow completes. Reflects the `leads_to` of the workflow's submit step.
+</ResponseField>
+
+<ResponseField name="steps" type="array">
+  Ordered list of steps executed, each prefixed with its type. For example: `"navigate:https://example.com/login"`, `"action:fill_email"`.
+</ResponseField>
+
+## Error responses
+
+| Status | Body |
+|--------|------|
+| `404` | `{ "ok": false, "error": "Workflow 'submit_login' not found" }` |
+| `400` | `{ "ok": false, "error": "Invalid JSON body" }` |
+| `500` | `{ "ok": false, "error": "<execution error message>" }` |
+
+<Warning>
+  Workflows execute on the live browser tab through the Chrome extension. The relevant page must be open and the extension connected before you call this endpoint. If the browser is on a different page than expected, navigation steps in the workflow will attempt to route to the correct URL first.
+</Warning>
+
+<Note>
+  Workflow names and their input schemas are derived automatically during discovery. To see all workflows available for a site — including the exact field names and types — fetch the OpenAPI spec at `GET /api/sites/:slug/openapi.json` or open the Swagger UI at `GET /api/sites/:slug/docs`.
+</Note>

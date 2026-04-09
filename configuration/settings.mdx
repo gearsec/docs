@@ -1,0 +1,92 @@
+---
+title: "Settings"
+description: "All configuration options for BrowserWire and how to set them."
+---
+
+## Configuration sources
+
+BrowserWire merges configuration from four sources. When the same option is set in multiple places, the source with the highest precedence wins:
+
+| Precedence | Source |
+|------------|--------|
+| 1 (highest) | CLI flags |
+| 2 | Environment variables / `.env` file |
+| 3 | Config file (`~/.browserwire/config.json`) |
+| 4 (lowest) | Built-in defaults |
+
+## Environment variables
+
+Place these in your shell environment or in a `.env` file in your working directory.
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `BROWSERWIRE_LLM_PROVIDER` | LLM provider to use (`openai`, `anthropic`, `gemini`, `ollama`) | — |
+| `BROWSERWIRE_LLM_API_KEY` | API key for the chosen provider | — |
+| `BROWSERWIRE_LLM_MODEL` | Override the provider's default model | Provider default |
+| `BROWSERWIRE_LLM_BASE_URL` | Custom API endpoint (useful for Ollama or proxies) | Provider default |
+| `BROWSERWIRE_HOST` | Address the server listens on | `127.0.0.1` |
+| `BROWSERWIRE_PORT` | Port the server listens on | `8787` |
+
+<Note>
+  `BROWSERWIRE_LLM_API_KEY` is required for all providers except `ollama`.
+</Note>
+
+## Config file
+
+You can store persistent settings in `~/.browserwire/config.json`. BrowserWire creates the directory automatically if it does not exist.
+
+```json
+{
+  "llmProvider": "openai",
+  "llmApiKey": "sk-...",
+  "llmModel": "gpt-4o",
+  "llmBaseUrl": "https://api.openai.com/v1",
+  "host": "127.0.0.1",
+  "port": 8787
+}
+```
+
+Only include keys you want to set — omitted keys fall back to environment variables or defaults.
+
+## .env file
+
+BrowserWire automatically loads a `.env` file from the directory where you run the `browserwire` command. This is convenient for per-project configuration without touching your shell profile.
+
+```bash
+# .env
+BROWSERWIRE_LLM_PROVIDER=anthropic
+BROWSERWIRE_LLM_API_KEY=sk-ant-...
+BROWSERWIRE_PORT=9000
+```
+
+<Info>
+  `.env` values do not override variables that are already set in your shell environment.
+</Info>
+
+## CLI flags
+
+CLI flags take precedence over all other sources.
+
+| Flag | Description |
+|------|-------------|
+| `--host <address>` | Address the server listens on |
+| `--port <number>` | Port the server listens on |
+| `--debug` | Enable verbose debug logging |
+| `--llm-provider <name>` | LLM provider |
+| `--llm-api-key <key>` | API key for the provider |
+| `--help` | Print usage information |
+
+```bash
+# Start on a custom host and port
+browserwire --host 0.0.0.0 --port 3000
+
+# Pass LLM credentials directly
+browserwire --llm-provider anthropic --llm-api-key sk-ant-...
+
+# Enable debug logging
+browserwire --debug
+```
+
+<Warning>
+  Passing secrets like `--llm-api-key` as CLI flags may expose them in shell history. Prefer environment variables or the config file for sensitive values.
+</Warning>

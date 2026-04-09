@@ -1,0 +1,112 @@
+---
+title: "Agent integration"
+description: "How to feed BrowserWire's discovered APIs to a tool-using AI agent."
+---
+
+Once you've discovered a site, BrowserWire exposes everything it found as an OpenAPI 3.0-compatible REST API. You can point any tool-using LLM directly at the spec and let it reason about available operations without any manual wiring.
+
+## The OpenAPI spec endpoint
+
+```
+GET /api/sites/:slug/openapi.json
+```
+
+This endpoint returns a full OpenAPI 3.0 spec for the discovered site. It includes every view, action, and workflow as a typed operation with request schemas, parameter descriptions, and example values inferred during discovery.
+
+Tool-using models (GPT-4o, Claude, Gemini) can consume this spec directly — either by fetching it at runtime or by embedding it in a system prompt.
+
+## Working with the API
+
+### List discovered sites
+
+Start by confirming which sites are available:
+
+```bash
+curl http://localhost:8787/api/sites
+```
+
+```json
+{
+  "ok": true,
+  "sites": [
+    {
+      "slug": "example-com",
+      "origin": "https://example.com",
+      "stateCount": 12,
+      "viewCount": 5,
+      "actionCount": 8
+    }
+  ]
+}
+```
+
+### Get the OpenAPI spec
+
+Fetch the spec for your agent. The `slug` comes from the list above:
+
+```bash
+curl http://localhost:8787/api/sites/example-com/openapi.json
+```
+
+Pass this spec to your agent as a tool manifest, or load it dynamically at the start of each session.
+
+### Call an operation
+
+<CodeGroup>
+```bash View (read data)
+# Views use GET and accept inputs as query parameters
+curl "http://localhost:8787/api/sites/example-com/views/user_profile?user_id=42"
+```
+
+```bash Action (perform a UI operation)
+# Actions use POST and accept inputs as a JSON body
+curl -X POST http://localhost:8787/api/sites/example-com/actions/click_submit_button \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+```bash Workflow (multi-step sequence)
+# Workflows use POST and execute a full sequence of actions in order
+curl -X POST http://localhost:8787/api/sites/example-com/workflows/submit_login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "user@example.com", "password": "secret"}'
+```
+</CodeGroup>
+
+## The three operation types
+
+BrowserWire organizes discovered operations into three categories:
+
+| Type | Method | What it does |
+|------|--------|-------------|
+| **Views** | `GET` | Navigates to a page or component and reads structured data from it |
+| **Actions** | `POST` | Performs a single UI operation — clicking a button, selecting from a dropdown, etc. |
+| **Workflows** | `POST` | Executes a multi-step sequence of actions in order — the way users complete a full task like logging in or submitting a form |
+
+For most agent tasks, workflows are the right starting point. They package the full sequence needed to complete an operation, so your agent doesn't need to orchestrate individual actions itself.
+
+## Testing operations interactively
+
+Before connecting an agent, you can test every discovered operation in the browser using the Swagger UI:
+
+```bash
+open http://localhost:8787/api/sites/example-com/docs
+```
+
+Replace `example-com` with your site's slug. The Swagger UI lists all views, actions, and workflows with their input schemas, and lets you execute them directly.
+
+## CORS
+
+All API endpoints include permissive CORS headers by default:
+
+```
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: GET, POST, OPTIONS
+Access-Control-Allow-Headers: Content-Type
+```
+
+This means you can call the BrowserWire API directly from a browser-based agent or frontend without proxy configuration.
+
+<Note>
+  The BrowserWire server listens on `127.0.0.1` by default, so it's only reachable from the local machine. If you need to access it from another host (e.g., a remote agent), start the server with `browserwire --host 0.0.0.0` and ensure the port is accessible.
+</Note>

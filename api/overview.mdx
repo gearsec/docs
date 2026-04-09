@@ -1,0 +1,66 @@
+---
+title: "Overview"
+description: "Base URLs, request/response conventions, and a complete endpoint index for the BrowserWire REST API."
+---
+
+The BrowserWire server exposes a REST API that lets you list discovered sites, read their manifests, and execute actions through the Chrome extension — all over plain HTTP.
+
+## Base URL
+
+```
+http://127.0.0.1:8787
+```
+
+The host and port are configurable via the `--host` and `--port` CLI flags, or with the `BROWSERWIRE_HOST` / `BROWSERWIRE_PORT` environment variables.
+
+## Request format
+
+All `POST` endpoints expect a JSON request body. Set the `Content-Type` header accordingly:
+
+```
+Content-Type: application/json
+```
+
+## Response format
+
+All endpoints return JSON (except `/api/docs` and `/api/sites/:slug/docs`, which return HTML). Every JSON response includes an `"ok"` field indicating success or failure.
+
+**Success**
+
+```json
+{ "ok": true, ... }
+```
+
+**Error**
+
+```json
+{ "ok": false, "error": "<human-readable message>" }
+```
+
+HTTP status codes follow standard conventions: `200` for success, `400` for bad request bodies, `404` for unknown slugs or operation names, and `500` for execution errors.
+
+## CORS
+
+All endpoints include permissive CORS headers, so you can call the API from any browser origin:
+
+```
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: GET, POST, OPTIONS
+Access-Control-Allow-Headers: Content-Type
+```
+
+## Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/health` | Health check |
+| `GET` | `/api/sites` | List all discovered sites |
+| `GET` | `/api/docs` | HTML landing page with site index |
+| `GET` | `/api/sites/:slug/manifest` | Raw manifest JSON for a site |
+| `GET` | `/api/sites/:slug/openapi.json` | OpenAPI 3.0 spec for a site |
+| `GET` | `/api/sites/:slug/docs` | Swagger UI for a site |
+| `GET` | `/api/sites/:slug/views/:name` | Read structured view data |
+| `POST` | `/api/sites/:slug/actions/:name` | Execute a UI action |
+| `POST` | `/api/sites/:slug/workflows/:name` | Execute a multi-step workflow |
+
+The `:slug` path parameter identifies a discovered site. It is derived from the site's origin — for example, `https://example.com` becomes `example-com`.

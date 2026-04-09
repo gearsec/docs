@@ -1,0 +1,149 @@
+---
+title: "Workflows"
+description: "Task-level APIs synthesized from discovered actions — multi-step operations like login, search, or checkout that your agent can call in a single request."
+---
+
+**Workflows** are the highest-level API BrowserWire exposes. Where [actions](/concepts/manifest#actions) represent individual page interactions (fill a field, click a button), a workflow chains several actions together into a complete task — log in, search for a product, submit a form — and wraps it in a single callable endpoint.
+
+Your agent calls a workflow by name, passes any required inputs, and BrowserWire handles all the intermediate steps: navigating to the right page, filling fields in order, clicking the submit button, and verifying the outcome.
+
+## Workflows vs. actions
+
+| | Actions | Workflows |
+|---|---|---|
+| Scope | Single interaction | End-to-end task |
+| Steps | One | Multiple, ordered |
+| Navigation | No (assumes current page) | Yes (navigates as needed) |
+| Outcome verification | Postconditions on the element | Outcome signals on the page |
+| Best for | Precise control | Agent-friendly task execution |
+
+<Note>
+Actions give you fine-grained control over individual interactions. Workflows give your agent a simpler, more reliable interface for completing tasks. Use workflows when you want the agent to accomplish a goal rather than operate the UI step by step.
+</Note>
+
+## Step types
+
+A workflow is an ordered list of steps. Each step has a `type` that determines what it does:
+
+| Type | Description |
+|---|---|
+| `navigate` | Navigate to a URL (relative or absolute) before the next step |
+| `fill` | Type a value into a form field, using one of the workflow's input parameters |
+| `select` | Choose an option from a dropdown or radio group |
+| `click` | Click a button or link |
+| `submit` | Submit a form |
+| `read_view` | Extract structured data from the page using a named view |
+
+Steps reference existing manifest items by ID — `actionId` for `fill`, `select`, `click`, and `submit` steps; `viewId` for `read_view` steps. This means the workflow inherits all the locator strategies and confidence scores from the underlying actions.
+
+## Workflow kinds
+
+Every workflow is labeled with a `kind` that describes what it does to data:
+
+| Kind | Description |
+|---|---|
+| `read` | Only reads data from the page — no side effects |
+| `write` | Performs operations that change state (submitting forms, clicking buttons) |
+| `mixed` | Both reads data and causes side effects |
+
+Your agent can use `kind` to reason about idempotency and decide whether it's safe to retry a failed workflow.
+
+## Outcome signals
+
+For `write` and `mixed` workflows, BrowserWire captures **outcome signals** — conditions that tell the runtime whether the workflow succeeded or failed after the final step. Rather than relying on a fixed response code, outcome signals observe the page itself:
+
+| Signal kind | What it checks |
+|---|---|
+| `url_change` | The URL changed to a specific pattern after submission |
+| `element_appears` | A specific element became visible (e.g. a success banner) |
+| `element_disappears` | A specific element is no longer present (e.g. the form closed) |
+| `text_contains` | A specific element's text matches an expected string |
+
+If the success signal is observed, the workflow call returns `ok: true`. If the failure signal is observed (or neither signal fires within the timeout), the call returns `ok: false` with an error.
+
+## Example: login workflow
+
+Here is a conceptual example of a workflow that logs a user in to a site:
+
+```json
+{
+  "id": "workflow_submit_login",
+  "name": "submit_login",
+  "description": "Navigate to the login page, enter credentials, and submit the form.",
+  "kind": "write",
+  "inputs": [
+    { "name": "email", "type": "string", "required": true, "description": "The user's email address" },
+    { "name": "password", "type": "string", "required": true, "description": "The user's password" }
+  ],
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "/login"
+    },
+    {
+      "type": "fill",
+      "actionId": "act_fill_email",
+      "inputParam": "email"
+    },
+    {
+      "type": "fill",
+      "actionId": "act_fill_password",
+      "inputParam": "password"
+    },
+    {
+      "type": "submit",
+      "actionId": "act_submit_login_form"
+    }
+  ],
+  "outcomes": {
+    "success": {
+      "kind": "url_change",
+      "value": "/dashboard"
+    },
+    "failure": {
+      "kind": "text_contains",
+      "value": "Invalid email or password",
+      "selector": ".alert-error"
+    }
+  }
+}
+```
+
+The workflow navigates to `/login`, fills both credential fields using the `email` and `password` inputs you pass at call time, submits the form, then checks whether the page navigated to `/dashboard` (success) or displayed an error message (failure).
+
+## Calling a workflow
+
+Workflows are called via a `POST` request to `/api/sites/:slug/workflows/:name`. Pass any required inputs as a JSON body.
+
+```bash
+curl -X POST http://localhost:8787/api/sites/example-com/workflows/submit_login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "user@example.com", "password": "secret"}'
+```
+
+A successful response looks like:
+
+```json
+{
+  "ok": true
+}
+```
+
+A failed response includes an error description:
+
+```json
+{
+  "ok": false,
+  "error": "Outcome failure signal matched: element text 'Invalid email or password' found at .alert-error"
+}
+```
+
+<Tip>
+The OpenAPI spec at `/api/sites/:slug/openapi.json` includes full schema definitions for every workflow's inputs. Point your agent at this spec and it can discover and call all available workflows automatically.
+</Tip>
+
+You can also browse all available workflows interactively in the Swagger UI:
+
+```bash
+open http://localhost:8787/api/sites/example-com/docs
+```

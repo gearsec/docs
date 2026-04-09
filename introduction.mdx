@@ -1,0 +1,50 @@
+---
+title: "Introduction"
+description: "BrowserWire turns any website into a typed REST API your AI agent can call — no scraping, no manual wiring."
+---
+
+BrowserWire is a contract layer between AI agents and websites. Instead of writing brittle DOM scrapers or maintaining fragile selectors, you browse a site once and BrowserWire builds a versioned manifest of everything it can do — entities, actions, views, and workflows — served as a REST API.
+
+```
+You browse a site → BrowserWire watches → You get a typed API
+```
+
+## Who it's for
+
+BrowserWire is built for **AI agent developers** and **automation engineers** who need to give agents reliable, typed access to web interfaces without maintaining low-level browser automation scripts.
+
+If you've ever written a Playwright script to log into a dashboard, fill out a form, or extract structured data — and then had it break the next time the site updated — BrowserWire is designed to solve that.
+
+## Key capabilities
+
+**Vision LLM discovery** — BrowserWire uses a vision-capable LLM to perceive what's on the page. It identifies interactive elements, understands their purpose, and synthesizes reliable locators without relying on fragile CSS or XPath selectors.
+
+**Typed APIs** — Discovered pages produce callable operations like `submit_login(email, password)` with input schemas. Your agent gets a structured interface, not a blob of HTML.
+
+**OpenAPI output** — Every discovered site gets an OpenAPI 3.0 spec at `/api/sites/:slug/openapi.json`. Point any tool-using LLM at this spec and it can discover and call actions without any manual integration.
+
+**Chrome extension** — A Chrome extension runs alongside your browser during discovery. It captures page state and communicates with the BrowserWire server over a local WebSocket connection. The extension only activates when you explicitly start an exploration session.
+
+**Desktop app** — An Electron-based desktop app bundles the server and extension management into a single native window, as an alternative to running the CLI manually.
+
+## How the discovery pipeline works
+
+When you start an exploration session, BrowserWire's pipeline runs the following stages:
+
+1. **Perception** — The Chrome extension captures the current page state and sends it to the local server. The server passes a screenshot and page structure to a vision LLM, which identifies what's visible and what the user can interact with.
+
+2. **Locator synthesis** — For each discovered element, the pipeline generates reliable locators (semantic selectors, ARIA attributes, text content) so actions can be replayed consistently even if the page layout shifts.
+
+3. **Manifest compilation** — Discovered interactions are compiled into a typed manifest describing entities (data objects on the page), actions (things you can do), and workflows (multi-step sequences). The manifest is versioned and stored locally.
+
+4. **API generation** — The manifest is automatically translated into a REST API with an OpenAPI spec. You can query the spec, browse interactive Swagger docs, and execute actions over HTTP — all without writing any code.
+
+<Note>
+  BrowserWire runs entirely on your machine. The extension only sends page data to the local CLI server — nothing leaves your computer except the LLM API calls you configure.
+</Note>
+
+## Next steps
+
+<Card title="Quick Start" icon="rocket" href="/quickstart">
+  Install BrowserWire and discover your first site in under five minutes
+</Card>

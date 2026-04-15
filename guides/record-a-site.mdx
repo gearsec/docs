@@ -8,7 +8,7 @@ This guide walks through the full recording workflow — from launching the brow
 ## Prerequisites
 
 - [BrowserWire CLI installed](/installation)
-- Logged in (`bw login`)
+- Logged in (`bw login`) — if your token has expired, `bw record` will prompt you to re-authenticate automatically
 
 ## Step-by-step
 
@@ -20,7 +20,7 @@ This guide walks through the full recording workflow — from launching the brow
     bw record https://example.com
     ```
 
-    A Chrome browser opens and navigates to the URL. You're not recording yet — take a moment to orient yourself.
+    A Chrome browser opens and navigates to the URL. You're not recording yet — take a moment to orient yourself on the site.
   </Step>
 
   <Step title="Press Enter to start recording">
@@ -54,18 +54,16 @@ This guide walks through the full recording workflow — from launching the brow
     ```
   </Step>
 
-  <Step title="Monitor training">
-    The dashboard opens automatically. You'll see your recording with a training status badge:
+  <Step title="Review on the dashboard">
+    The dashboard opens to your **recording detail page**. Here you can:
 
-    - **Running** — the AI is analyzing your recording
-    - **Complete** — a manifest has been generated
-    - **Error** — something went wrong (check the error message)
-
-    Training typically takes 1–2 minutes.
+    - **Watch training progress** — the training status badge shows **running** (with an animated dot), and updates to **complete** or **error** when finished
+    - **Replay your session** — an interactive player at the bottom of the page lets you scrub through the recording and verify it captured what you intended
+    - **Jump to the manifest** — once training completes, a link appears next to the status (e.g., `→ example-com`) that takes you directly to the generated API endpoints
   </Step>
 
-  <Step title="View your endpoints">
-    Once training completes, go to **APIs** in the dashboard sidebar. Click your domain to see all discovered endpoints — views (GET) and actions (POST) — organized by page state, with copy-ready curl commands.
+  <Step title="Browse your endpoints">
+    Go to **APIs** in the dashboard sidebar (or click the manifest link from the recording page). Click your domain to open the **Endpoint Explorer**, which lists every discovered view and action with copy-ready curl commands.
   </Step>
 
   <Step title="Run locally">
@@ -75,6 +73,8 @@ This guide walks through the full recording workflow — from launching the brow
     bw run
     curl http://127.0.0.1:8787/api/sites
     ```
+
+    Or paste a curl command directly from the Endpoint Explorer.
   </Step>
 </Steps>
 
@@ -97,3 +97,13 @@ If you click a link that would normally open in a new tab, BrowserWire redirects
 ## Browser disconnection
 
 If you close the browser accidentally while recording, BrowserWire detects the disconnection and saves whatever events were captured up to that point. The upload and training run proceed normally.
+
+## Training errors
+
+If training fails, the recording detail page shows an error message: *"Training was unable to complete. Please try recording again."*
+
+Common causes:
+- **Very few events** — the recording was too short for the AI to identify any meaningful structure. Try recording more pages and interactions.
+- **Heavy client-side rendering** — some sites use complex rendering that the AI can't fully parse. Try interacting more slowly and waiting for pages to stabilize.
+
+You can always re-record the same site to trigger a new training run.

@@ -42,10 +42,28 @@ bw record https://example.com
 1. Launches a Chrome browser and navigates to the URL
 2. You browse freely — recording hasn't started yet
 3. Press **Enter** to start recording (page reloads for a clean snapshot)
-4. Interact with the site
+4. Interact with the site — every DOM mutation, click, keystroke, and navigation is captured
 5. Press **Enter** to stop recording
 6. Events are uploaded and a training run is triggered automatically
-7. The dashboard opens in your browser
+7. The dashboard opens in your browser to the recording detail page
+
+### Terminal output
+
+```
+Launching browser for https://example.com...
+
+Navigate the site freely.
+Press Enter to START recording, then Enter again to STOP.
+
+Reloading page for clean snapshot...
+Recording started. Navigate the site, then press Enter to stop.
+
+Captured 847 events.
+Uploading recording...
+Upload complete.
+Starting training...
+Opening dashboard: https://app.browserwire.io/dashboard/recordings/abc123
+```
 
 ### Authentication
 

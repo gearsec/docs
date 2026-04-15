@@ -29,19 +29,29 @@ Verify the installation:
 bw --version
 ```
 
-## Authenticate
+## Create an account and authenticate
 
-BrowserWire requires an account for recording and training. Log in via the CLI:
+BrowserWire requires an account for recording and training. Run:
 
 ```bash
 bw login
 ```
 
-This opens your browser for authentication. After signing in, a session token is saved to `~/.config/browserwire/config.json` (file permissions `0600`). The token is valid for 30 days.
+This opens your default browser to the BrowserWire sign-in page at `app.browserwire.io`. If you don't have an account yet, click **Sign up** — you can register with email or an OAuth provider (Google, GitHub, etc.).
+
+After you authenticate in the browser:
+
+1. The browser shows **"Logged in successfully!"** — you can close the tab
+2. Your terminal confirms: `Logged in as you@example.com`
+3. A session token is saved to `~/.config/browserwire/config.json` (file permissions `0600`)
+
+The token is valid for **30 days**. When it expires, `bw record` will automatically prompt you to re-authenticate before uploading — you won't lose your recording.
+
+<Tip>If the browser doesn't open automatically, the CLI prints a URL you can copy and visit manually. The login flow has a 120-second timeout.</Tip>
 
 ### CI / automation
 
-For headless environments, set the `BW_TOKEN` environment variable instead of using interactive login:
+For headless environments where interactive login isn't possible, set the `BW_TOKEN` environment variable:
 
 ```bash
 export BW_TOKEN="your-session-token"
@@ -63,7 +73,7 @@ The CLI reads configuration from these sources, in order of precedence:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `BW_TOKEN` | Session token (skips config file) | — |
+| `BW_TOKEN` | Session token (overrides config file) | — |
 | `BW_API_URL` | Backend API URL | `https://app.browserwire.io` |
 
 ### Config file

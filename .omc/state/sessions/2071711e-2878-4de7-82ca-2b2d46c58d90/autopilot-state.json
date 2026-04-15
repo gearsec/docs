@@ -1,0 +1,10 @@
+{
+  "active": true,
+  "started_at": "2026-04-15T13:41:45.889Z",
+  "original_prompt": "The quick start doesnt talk about the onboarding in the app. ensure the docs cover everything for a user to navigate and use the product end to end",
+  "session_id": "2071711e-2878-4de7-82ca-2b2d46c58d90",
+  "project_path": "/Users/vedhantagarwal/docs",
+  "reinforcement_count": 0,
+  "awaiting_confirmation": true,
+  "last_checked_at": "2026-04-15T13:41:45.890Z"
+}

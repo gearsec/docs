@@ -2,3 +2,5 @@
 {"t":0,"agent":"a04daeb","agent_type":"Explore","event":"agent_start","parent_mode":"none"}
 {"t":0,"agent":"a0a7295","agent_type":"Explore","event":"agent_stop","success":true,"duration_ms":88699}
 {"t":0,"agent":"a04daeb","agent_type":"Explore","event":"agent_stop","success":true,"duration_ms":98136}
+{"t":0,"agent":"system","event":"keyword_detected","keyword":"autopilot"}
+{"t":0,"agent":"system","event":"mode_change","mode_from":"none","mode_to":"autopilot"}

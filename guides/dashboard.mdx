@@ -1,66 +1,134 @@
 ---
 title: "Dashboard"
-description: "View recordings, monitor training, and browse generated APIs in the web dashboard."
+description: "Navigate the web dashboard — recordings, training, APIs, and billing."
 ---
 
-The BrowserWire dashboard at [app.browserwire.io](https://app.browserwire.io) is where you manage your recordings, monitor training progress, and explore the APIs that have been generated from your sessions.
+The BrowserWire dashboard at [app.browserwire.io](https://app.browserwire.io) is where you manage your recordings, monitor training progress, explore generated APIs, and manage your account.
 
-## Signing in
+## Creating an account
 
-The dashboard uses the same account as the CLI. Sign in at [app.browserwire.io/sign-in](https://app.browserwire.io/sign-in) with the same credentials you used for `bw login`.
+Visit [app.browserwire.io/sign-up](https://app.browserwire.io/sign-up) to create an account. You can sign up with email or use an OAuth provider (Google, GitHub, etc.). The same account is used for both the dashboard and the CLI.
+
+If you've already run `bw login`, you have an account — sign in at [app.browserwire.io/sign-in](https://app.browserwire.io/sign-in) with the same credentials.
+
+After signing in, you're redirected to the dashboard.
+
+## Dashboard layout
+
+The dashboard has a **sidebar** on the left with four sections:
+
+| Section | Icon | Description |
+|---------|------|-------------|
+| **Overview** | Grid | Account summary with key metrics and recent items |
+| **APIs** | Code | All generated manifests and their endpoints |
+| **Recordings** | Video | All captured browser sessions |
+| **Plan** | Sparkle | Subscription and billing information |
+
+Your **email** and a **sign out** option are in the sidebar footer.
 
 ## Overview
 
-The main dashboard page shows a summary of your account:
+The main dashboard page shows a high-level summary:
 
-- **Manifests discovered** — total number of generated APIs
-- **Recordings** — total number of browser sessions captured
-- **Active training** — number of training runs currently in progress (with a live indicator)
-- **Recent Manifests** and **Recent Recordings** — quick-access lists of your latest items
+- **Manifests discovered** — large counter showing total generated APIs
+- **Recordings** — total browser sessions captured
+- **Active training** — number of training runs currently in progress (with a live animated dot when > 0)
+- **Recent Manifests** — quick-access list of your 5 most recently updated APIs, with domain, slug, and date. Click any row to jump to its endpoint explorer.
+- **Recent Recordings** — quick-access list of your 5 most recent recordings, with domain, event count, and date. Click any row to jump to its detail page.
 
-## APIs
+If you're a new user, you'll see empty states with a helpful prompt:
 
-Navigate to **APIs** in the sidebar to see all your generated manifests. Each row shows:
-
-| Column | Description |
-|--------|-------------|
-| **Domain** | The website domain (e.g., `example.com`) |
-| **Endpoints** | Total number of views + actions discovered |
-| **Updated** | When the manifest was last generated |
-
-Click a domain to open the **Endpoint Explorer**, which lists every endpoint with:
-
-- **Method badge** — `GET` for views, `POST` for actions
-- **Endpoint name** — the view or action name
-- **Full URL path** — the local API path (e.g., `/api/sites/example-com/views/HomePage/product_list`)
-- **curl command** — copy-ready command to test the endpoint via `bw run`
-
-All endpoints are shown with `http://127.0.0.1:8787` as the base URL, since they're served by your local execution server.
+> No manifests yet. Record a browser session to discover your first state machine.
+> `bw record <url>`
 
 ## Recordings
 
-Navigate to **Recordings** in the sidebar to see all captured browser sessions. Each row shows:
+Navigate to **Recordings** in the sidebar to see all captured browser sessions in a paginated table (20 per page).
+
+### Recordings table
 
 | Column | Description |
 |--------|-------------|
-| **Domain** | The website that was recorded |
+| **Domain** | The website that was recorded (clickable — opens recording detail) |
 | **Events** | Number of rrweb events captured |
-| **Size** | Recording file size |
-| **Training** | Status badge — `running`, `complete`, or `error` |
+| **Size** | Recording file size in KB |
+| **Training** | Status badge — see below |
 | **Date** | When the recording was created |
 
-Click a recording to view its details and replay the session.
+### Training status badges
+
+| Badge | Meaning |
+|-------|---------|
+| **running** (with animated dot) | Training pipeline is actively processing |
+| **complete** | Manifest generated successfully |
+| **error** | Training failed — click the recording for details |
+| **—** | No training run has been triggered |
+
+### Recording detail page
+
+Click any recording to open its detail page, which shows:
+
+- **Domain, event count, and timestamp** at the top
+- **Training Runs** section listing every training run for this recording:
+  - Status badge and timestamp (or "Running..." / "Failed")
+  - If **complete**: a link to the generated manifest (e.g., `→ example-com`) — click to jump to the Endpoint Explorer
+  - If **error**: an error message: *"Training was unable to complete. Please try recording again."*
+- **Recording Replay** — an interactive rrweb player that replays your recorded session in the browser. Use the playback controls to scrub through the recording and see exactly what was captured.
+
+## APIs
+
+Navigate to **APIs** in the sidebar to see all your generated manifests.
+
+### Manifests table
+
+| Column | Description |
+|--------|-------------|
+| **Domain** | The website domain (clickable — opens endpoint explorer) |
+| **Endpoints** | Total number of views + actions discovered |
+| **Updated** | When the manifest was last generated |
+
+### Endpoint Explorer
+
+Click a domain to open the Endpoint Explorer for that manifest. Every discovered endpoint is listed with:
+
+- **Method badge** — green `GET` for views, blue `POST` for actions
+- **Endpoint name** — the semantic name assigned by the AI (e.g., `product_list`, `submit_login`)
+- **URL path** — the full local API path (shown in grey, e.g., `/api/sites/example-com/views/HomePage/product_list`)
+
+Click any endpoint row to expand it and see:
+
+- **Full URL** with a copy button — the complete `http://127.0.0.1:8787/...` URL
+- **curl command** with a copy button — a ready-to-paste command for testing
+
+The header shows the total endpoint count and the base URL (`http://127.0.0.1:8787`).
+
+<Tip>Copy curl commands directly from the Endpoint Explorer and paste them into your terminal while `bw run` is active to test endpoints immediately.</Tip>
 
 ## Plan
 
-Navigate to **Plan** in the sidebar to view your current subscription. BrowserWire is currently in **Early Access** — everything is included for free. You'll be notified before pricing changes.
+Navigate to **Plan** in the sidebar to view your current subscription status. BrowserWire is currently in **Early Access** — all features are included for free. You'll be notified before any pricing changes.
 
-## Workflow
+## End-to-end workflow
 
-A typical workflow using the dashboard:
+Here's how the dashboard fits into the full BrowserWire workflow:
 
-1. **Record** — `bw record https://example.com` (creates a recording + triggers training)
-2. **Monitor** — watch the training badge on the Recordings page
-3. **Explore** — once complete, go to APIs and browse the generated endpoints
-4. **Copy curl** — grab the curl commands from the Endpoint Explorer
-5. **Execute** — run `bw run` locally and test the endpoints
+<Steps>
+  <Step title="Record">
+    Run `bw record https://example.com` in your terminal. This creates a recording and opens the dashboard to the recording detail page.
+  </Step>
+  <Step title="Monitor training">
+    Watch the training status badge on the recording detail page. It starts as **running** with an animated indicator.
+  </Step>
+  <Step title="Review the recording">
+    While waiting, use the **Recording Replay** player to verify the session captured what you intended.
+  </Step>
+  <Step title="Navigate to your API">
+    Once training shows **complete**, click the manifest link (e.g., `→ example-com`) to jump to the Endpoint Explorer.
+  </Step>
+  <Step title="Copy curl commands">
+    Expand any endpoint in the Endpoint Explorer and copy the curl command.
+  </Step>
+  <Step title="Execute locally">
+    Run `bw run` in your terminal, then paste the curl command to test the endpoint.
+  </Step>
+</Steps>

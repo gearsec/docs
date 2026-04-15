@@ -91,6 +91,24 @@
   },
   "hotPaths": [
     {
+      "path": "quickstart.mdx",
+      "accessCount": 6,
+      "lastAccessed": 1776260712958,
+      "type": "file"
+    },
+    {
+      "path": "installation.mdx",
+      "accessCount": 5,
+      "lastAccessed": 1776260596672,
+      "type": "file"
+    },
+    {
+      "path": "reference/cli.mdx",
+      "accessCount": 5,
+      "lastAccessed": 1776260726377,
+      "type": "file"
+    },
+    {
       "path": "docs.json",
       "accessCount": 3,
       "lastAccessed": 1776256240465,
@@ -109,18 +127,6 @@
       "type": "file"
     },
     {
-      "path": "quickstart.mdx",
-      "accessCount": 3,
-      "lastAccessed": 1776259927064,
-      "type": "file"
-    },
-    {
-      "path": "installation.mdx",
-      "accessCount": 3,
-      "lastAccessed": 1776259938591,
-      "type": "file"
-    },
-    {
       "path": "concepts/manifest.mdx",
       "accessCount": 3,
       "lastAccessed": 1776259999248,
@@ -130,12 +136,6 @@
       "path": "guides/agent-integration.mdx",
       "accessCount": 3,
       "lastAccessed": 1776260038837,
-      "type": "file"
-    },
-    {
-      "path": "reference/cli.mdx",
-      "accessCount": 3,
-      "lastAccessed": 1776260070864,
       "type": "file"
     },
     {
@@ -178,6 +178,18 @@
       "path": "api/actions.mdx",
       "accessCount": 3,
       "lastAccessed": 1776260143561,
+      "type": "file"
+    },
+    {
+      "path": "guides/dashboard.mdx",
+      "accessCount": 3,
+      "lastAccessed": 1776260582651,
+      "type": "file"
+    },
+    {
+      "path": "guides/record-a-site.mdx",
+      "accessCount": 3,
+      "lastAccessed": 1776260606052,
       "type": "file"
     },
     {
@@ -256,18 +268,6 @@
       "path": "concepts/training.mdx",
       "accessCount": 1,
       "lastAccessed": 1776259981133,
-      "type": "file"
-    },
-    {
-      "path": "guides/record-a-site.mdx",
-      "accessCount": 1,
-      "lastAccessed": 1776260017756,
-      "type": "file"
-    },
-    {
-      "path": "guides/dashboard.mdx",
-      "accessCount": 1,
-      "lastAccessed": 1776260051593,
       "type": "file"
     },
     {

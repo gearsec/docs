@@ -13,13 +13,23 @@ This installs the `bw` command globally. Playwright and Chromium are installed a
 
 <Note>Requires **Node.js 22+** and **macOS or Linux**.</Note>
 
-## 2. Log in
+## 2. Create an account and log in
 
 ```bash
 bw login
 ```
 
-Your browser opens for authentication. Once you sign in, a session token is saved locally at `~/.config/browserwire/config.json`.
+Your default browser opens to the BrowserWire sign-in page. If you don't have an account yet, click **Sign up** to create one — you can sign up with email or an OAuth provider (Google, GitHub, etc.).
+
+After you authenticate, the browser shows a "Logged in successfully!" confirmation and you can close the tab. Back in your terminal, you'll see:
+
+```
+Logged in as you@example.com
+```
+
+Your session token is saved locally and is valid for 30 days. You won't need to log in again until it expires.
+
+<Tip>If the browser doesn't open automatically, the CLI prints a URL you can copy and visit manually.</Tip>
 
 ## 3. Record a site
 
@@ -27,19 +37,65 @@ Your browser opens for authentication. Once you sign in, a session token is save
 bw record https://example.com
 ```
 
-A Chrome browser opens. Navigate the site freely — the recording hasn't started yet.
+A Chrome browser launches and navigates to the URL. You'll see this in your terminal:
 
-When you're ready, **press Enter** to start recording. Interact with the site: fill forms, click buttons, navigate pages. When you're done, **press Enter** again to stop.
+```
+Launching browser for https://example.com...
 
-The recording is uploaded automatically, and training begins in the cloud. Your dashboard opens so you can monitor progress.
+Navigate the site freely.
+Press Enter to START recording, then Enter again to STOP.
+```
 
-## 4. Wait for training
+Browse the site to get oriented — nothing is being captured yet.
 
-Training typically takes 1–2 minutes. You can monitor progress on the [dashboard](https://app.browserwire.io/dashboard) — look for the training status badge next to your recording.
+When you're ready, **press Enter** in your terminal. BrowserWire reloads the page for a clean initial snapshot and starts capturing:
 
-Once complete, a **manifest** appears in the APIs section of the dashboard with every view and action the AI discovered.
+```
+Reloading page for clean snapshot...
+Recording started. Navigate the site, then press Enter to stop.
+```
 
-## 5. Start the local server
+Now interact with the site — fill forms, click buttons, navigate between pages. Everything you do is captured as structured DOM events.
+
+When you're done, **press Enter** again to stop:
+
+```
+Captured 847 events.
+Uploading recording...
+Upload complete.
+Starting training...
+Opening dashboard: https://app.browserwire.io/dashboard/recordings/abc123
+```
+
+The recording is uploaded automatically, training begins in the cloud, and your dashboard opens in the browser.
+
+## 4. Monitor training on the dashboard
+
+The dashboard opens to your **recording detail page**, where you can see:
+
+- **Event count and timestamp** for the recording
+- **Training status badge** — a live indicator showing the current state:
+  - **running** (with animated dot) — the AI is analyzing your recording
+  - **complete** — a manifest has been generated
+  - **error** — something went wrong (an error message is shown)
+- **Recording Replay** — an interactive player that lets you replay your recorded session
+
+Once training completes, a link appears next to the status badge pointing to the generated manifest (e.g., `→ example-com`). Click it to jump directly to your API endpoints.
+
+<Tip>Training typically takes 1–2 minutes. You can navigate away and come back — the status updates automatically.</Tip>
+
+## 5. Explore your generated API
+
+Go to **APIs** in the dashboard sidebar. You'll see your newly generated manifest with the domain name and endpoint count.
+
+Click the domain to open the **Endpoint Explorer**. Every discovered view and action is listed with:
+
+- A **method badge** (`GET` for views, `POST` for actions)
+- The **endpoint name** (e.g., `product_list`, `submit_login`)
+- The **full URL path** for the local server
+- A **copy-ready curl command** you can paste into your terminal
+
+## 6. Start the local server
 
 ```bash
 bw run
@@ -54,7 +110,7 @@ BrowserWire execution server running on http://127.0.0.1:8787
 
 A browser launches in the background. The server pre-fetches your manifests and is ready to serve requests.
 
-## 6. Call your APIs
+## 7. Call your APIs
 
 List discovered sites:
 
@@ -77,7 +133,7 @@ curl -X POST http://127.0.0.1:8787/api/sites/example-com/actions/LoginPage/submi
 ```
 
 <Tip>
-  The slug (`example-com`) is the site's domain with dots replaced by hyphens. Check `GET /api/sites` to see all available slugs.
+  The slug (`example-com`) is the site's domain with dots replaced by hyphens. Check `GET /api/sites` to see all available slugs, or copy the curl commands directly from the dashboard's Endpoint Explorer.
 </Tip>
 
 ## Next steps
@@ -89,8 +145,8 @@ curl -X POST http://127.0.0.1:8787/api/sites/example-com/actions/LoginPage/submi
   <Card title="Agent Integration" icon="robot" href="/guides/agent-integration">
     Connect your APIs to AI agents.
   </Card>
-  <Card title="CLI Reference" icon="terminal" href="/reference/cli">
-    All commands and flags.
+  <Card title="Dashboard Guide" icon="gauge" href="/guides/dashboard">
+    Full walkthrough of the web dashboard.
   </Card>
   <Card title="API Reference" icon="code" href="/api/overview">
     Full endpoint documentation.

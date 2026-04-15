@@ -1,0 +1,49 @@
+---
+title: "Training"
+description: "How BrowserWire's cloud pipeline turns recordings into typed manifests."
+---
+
+**Training** is the process that transforms a raw recording into a typed manifest. It runs automatically in BrowserWire's cloud after each recording upload.
+
+## How the pipeline works
+
+When a recording is uploaded, BrowserWire queues a training run that executes these stages:
+
+1. **Event download** — the pipeline fetches the rrweb event stream from cloud storage.
+
+2. **LLM analysis** — a vision-capable LLM processes the recording events. It identifies distinct page states, the data visible on each page (views), and the interactions available (actions). The LLM also generates executable code for each view and action — Playwright selectors and extraction logic that can replay the operation on a live page.
+
+3. **State machine synthesis** — the pipeline assembles the LLM's findings into a **manifest**: a typed state machine where each state represents a page, with associated views and actions. URL patterns are extracted so the execution server knows how to navigate to each state.
+
+4. **Callback** — the completed manifest is sent back to the BrowserWire backend and stored in your account. The training run status updates to `complete`.
+
+## Training statuses
+
+| Status | Meaning |
+|--------|---------|
+| `running` | Pipeline is actively processing the recording |
+| `complete` | Manifest generated successfully |
+| `error` | Pipeline encountered a failure (see error message) |
+
+You can monitor training status in the [dashboard](/guides/dashboard) or via the training badge on the Recordings page.
+
+## Retries
+
+If the training pipeline fails (e.g., due to a transient LLM error), the system retries automatically with exponential backoff — up to 4 attempts with delays between 2 and 60 seconds.
+
+## What the AI produces
+
+For each page state it identifies, the training pipeline generates:
+
+- **State name** — a semantic label like `HomePage`, `LoginPage`, `SearchResults`
+- **URL pattern** — an [RFC 6570](https://tools.ietf.org/html/rfc6570) URI template (e.g., `/products/{id}`)
+- **Views** — data extraction functions with names like `product_list` or `user_profile`, each with executable Playwright code
+- **Actions** — interaction functions with names like `click_login` or `fill_search`, each with input parameters and executable Playwright code
+
+## Re-training
+
+Recording the same site again triggers a new training run. The new manifest replaces the previous one for that domain. This lets you iteratively improve coverage by recording additional flows.
+
+<Tip>
+  If training fails, check the error message on the dashboard. Common causes include recordings with very few events (navigate more of the site) or pages with heavy client-side rendering that the LLM couldn't parse.
+</Tip>

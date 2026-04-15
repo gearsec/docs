@@ -1,0 +1,26 @@
+{
+  "agents": [
+    {
+      "agent_id": "a0a72959172c68b30",
+      "agent_type": "Explore",
+      "started_at": "2026-04-15T12:26:35.146Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-04-15T12:28:03.845Z",
+      "duration_ms": 88699
+    },
+    {
+      "agent_id": "a04daebeca1bd0e12",
+      "agent_type": "Explore",
+      "started_at": "2026-04-15T12:26:40.630Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-04-15T12:28:18.766Z",
+      "duration_ms": 98136
+    }
+  ],
+  "total_spawned": 2,
+  "total_completed": 2,
+  "total_failed": 0,
+  "last_updated": "2026-04-15T12:28:18.870Z"
+}

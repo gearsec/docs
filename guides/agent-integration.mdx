@@ -1,103 +1,140 @@
 ---
-title: "Agent integration"
-description: "How to feed BrowserWire's discovered APIs to a tool-using AI agent."
+title: "Agent Integration"
+description: "How to connect BrowserWire's discovered APIs to AI agents and automation scripts."
 ---
 
-Once you've discovered a site, BrowserWire exposes everything it found as an OpenAPI 3.0-compatible REST API. You can point any tool-using LLM directly at the spec and let it reason about available operations without any manual wiring.
+Once you've recorded and trained a site, BrowserWire serves its views and actions as REST endpoints via `bw run`. You can call these from any AI agent, automation script, or HTTP client.
 
-## The OpenAPI spec endpoint
-
-```
-GET /api/sites/:slug/openapi.json
-```
-
-This endpoint returns a full OpenAPI 3.0 spec for the discovered site. It includes every view, action, and workflow as a typed operation with request schemas, parameter descriptions, and example values inferred during discovery.
-
-Tool-using models (GPT-4o, Claude, Gemini) can consume this spec directly — either by fetching it at runtime or by embedding it in a system prompt.
-
-## Working with the API
+## Working with the local API
 
 ### List discovered sites
 
 Start by confirming which sites are available:
 
 ```bash
-curl http://localhost:8787/api/sites
+curl http://127.0.0.1:8787/api/sites
 ```
 
 ```json
-{
-  "ok": true,
-  "sites": [
-    {
-      "slug": "example-com",
-      "origin": "https://example.com",
-      "stateCount": 12,
-      "viewCount": 5,
-      "actionCount": 8
-    }
-  ]
-}
+[
+  {
+    "id": "mf_abc123",
+    "domain": "example.com",
+    "slug": "example-com",
+    "stateCount": 4,
+    "viewCount": 3,
+    "actionCount": 7
+  }
+]
 ```
 
-### Get the OpenAPI spec
+### Get the full manifest
 
-Fetch the spec for your agent. The `slug` comes from the list above:
+Fetch the manifest to see all states, views, and actions:
 
 ```bash
-curl http://localhost:8787/api/sites/example-com/openapi.json
+curl http://127.0.0.1:8787/api/sites/example-com/manifest
 ```
 
-Pass this spec to your agent as a tool manifest, or load it dynamically at the start of each session.
+The manifest contains every state with its views and actions, including their input schemas. You can pass this to an LLM as context so it knows what operations are available.
 
-### Call an operation
+### Call operations
 
 <CodeGroup>
 ```bash View (read data)
-# Views use GET and accept inputs as query parameters
-curl "http://localhost:8787/api/sites/example-com/views/user_profile?user_id=42"
+# Views use GET — reads structured data from a page state
+curl http://127.0.0.1:8787/api/sites/example-com/views/HomePage/product_list
 ```
 
-```bash Action (perform a UI operation)
-# Actions use POST and accept inputs as a JSON body
-curl -X POST http://localhost:8787/api/sites/example-com/actions/click_submit_button \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-```bash Workflow (multi-step sequence)
-# Workflows use POST and execute a full sequence of actions in order
-curl -X POST http://localhost:8787/api/sites/example-com/workflows/submit_login \
+```bash Action (perform interaction)
+# Actions use POST — executes an interaction on the page
+curl -X POST http://127.0.0.1:8787/api/sites/example-com/actions/LoginPage/submit_login \
   -H "Content-Type: application/json" \
   -d '{"email": "user@example.com", "password": "secret"}'
 ```
 </CodeGroup>
 
-## The three operation types
+## URL pattern
 
-BrowserWire organizes discovered operations into three categories:
+All endpoints follow this pattern:
 
-| Type | Method | What it does |
-|------|--------|-------------|
-| **Views** | `GET` | Navigates to a page or component and reads structured data from it |
-| **Actions** | `POST` | Performs a single UI operation — clicking a button, selecting from a dropdown, etc. |
-| **Workflows** | `POST` | Executes a multi-step sequence of actions in order — the way users complete a full task like logging in or submitting a form |
-
-For most agent tasks, workflows are the right starting point. They package the full sequence needed to complete an operation, so your agent doesn't need to orchestrate individual actions itself.
-
-## Testing operations interactively
-
-Before connecting an agent, you can test every discovered operation in the browser using the Swagger UI:
-
-```bash
-open http://localhost:8787/api/sites/example-com/docs
+```
+/api/sites/{slug}/views/{state}/{viewName}     # GET
+/api/sites/{slug}/actions/{state}/{actionName}  # POST
 ```
 
-Replace `example-com` with your site's slug. The Swagger UI lists all views, actions, and workflows with their input schemas, and lets you execute them directly.
+- **slug** — site identifier (e.g., `example-com`)
+- **state** — page state name from the manifest (e.g., `HomePage`, `LoginPage`)
+- **viewName** / **actionName** — the specific view or action within that state
+
+## Feeding to an LLM agent
+
+A practical approach for tool-using LLMs:
+
+1. Fetch the manifest: `GET /api/sites/{slug}/manifest`
+2. Extract the list of states, views, and actions into a tool schema
+3. Let the LLM decide which endpoints to call based on the user's request
+4. Execute the chosen endpoint and return the result
+
+```python
+import requests
+
+# Fetch manifest
+manifest = requests.get("http://127.0.0.1:8787/api/sites/example-com/manifest").json()
+
+# Build tool descriptions from states
+tools = []
+for state in manifest["states"]:
+    for view in state.get("views", []):
+        tools.append({
+            "name": f"read_{state['name']}_{view['name']}",
+            "description": f"Read {view['name']} from {state['name']}",
+            "endpoint": f"GET /api/sites/example-com/views/{state['name']}/{view['name']}"
+        })
+    for action in state.get("actions", []):
+        tools.append({
+            "name": f"do_{state['name']}_{action['name']}",
+            "description": f"Execute {action['name']} on {state['name']}",
+            "inputs": action.get("inputs", []),
+            "endpoint": f"POST /api/sites/example-com/actions/{state['name']}/{action['name']}"
+        })
+
+# Pass `tools` to your LLM as available functions
+```
+
+## Response format
+
+All endpoints return JSON with an `ok` field:
+
+**Success (view):**
+```json
+{
+  "ok": true,
+  "data": [ ... ],
+  "state": "HomePage",
+  "steps": ["navigate:https://example.com/", "view:product_list"]
+}
+```
+
+**Success (action):**
+```json
+{
+  "ok": true,
+  "state": "DashboardPage",
+  "steps": ["navigate:https://example.com/login", "action:submit_login"]
+}
+```
+
+**Error:**
+```json
+{
+  "error": "Action 'submit_login' failed: element not found"
+}
+```
 
 ## CORS
 
-All API endpoints include permissive CORS headers by default:
+The local server includes permissive CORS headers:
 
 ```
 Access-Control-Allow-Origin: *
@@ -105,8 +142,8 @@ Access-Control-Allow-Methods: GET, POST, OPTIONS
 Access-Control-Allow-Headers: Content-Type
 ```
 
-This means you can call the BrowserWire API directly from a browser-based agent or frontend without proxy configuration.
+You can call the API directly from browser-based agents or frontends without proxy configuration.
 
 <Note>
-  The BrowserWire server listens on `127.0.0.1` by default, so it's only reachable from the local machine. If you need to access it from another host (e.g., a remote agent), start the server with `browserwire --host 0.0.0.0` and ensure the port is accessible.
+  The server listens on `127.0.0.1` by default (local only). The `bw run` command does not currently support a `--host` flag — it always binds to localhost.
 </Note>

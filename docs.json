@@ -34,24 +34,17 @@
                     {
                         "group": "Core Concepts",
                         "pages": [
-                            "concepts/manifest",
-                            "concepts/discovery",
-                            "concepts/workflows"
-                        ]
-                    },
-                    {
-                        "group": "Configuration",
-                        "pages": [
-                            "configuration/llm-providers",
-                            "configuration/settings"
+                            "concepts/recording",
+                            "concepts/training",
+                            "concepts/manifest"
                         ]
                     },
                     {
                         "group": "Guides",
                         "pages": [
-                            "guides/discover-a-site",
+                            "guides/record-a-site",
                             "guides/agent-integration",
-                            "guides/desktop-app"
+                            "guides/dashboard"
                         ]
                     },
                     {
@@ -79,9 +72,8 @@
                             "api/health",
                             "api/sites",
                             "api/manifest",
-                            "api/openapi",
-                            "api/actions",
-                            "api/workflows"
+                            "api/views",
+                            "api/actions"
                         ]
                     }
                 ]

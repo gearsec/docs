@@ -1,121 +1,90 @@
 ---
-title: "Actions"
-description: "Read structured data from a page view, or execute a single UI action through the Chrome extension."
+title: "Execute Action"
+description: "Perform an interaction on a page by executing a discovered action."
 ---
 
-BrowserWire exposes two endpoint patterns for interacting with individual, discovered operations on a site: views for reading data and actions for executing interactions.
+## `POST /api/sites/:slug/actions/:state/:action`
 
----
+Navigates to the page state and executes the action's interaction code on the live page. Use this to click buttons, fill forms, submit data, and trigger any interaction the AI discovered.
 
-## Read a view
+When you call this endpoint, the execution server:
 
-### `GET /api/sites/:slug/views/:name`
+1. Looks up the manifest for the site
+2. Finds the target state and action
+3. Opens a new browser page
+4. Navigates to the state's URL (expanding template variables from inputs)
+5. Waits for the DOM to settle
+6. Runs the action's code with the provided inputs
+7. Returns the result
 
-Navigates to the page state that contains the view and returns its structured data. The server routes the request through the Chrome extension, which reads the live DOM and returns typed field values.
-
-### Path parameters
+## Path parameters
 
 <ParamField path="slug" type="string" required>
-  The site identifier, e.g. `example-com`. Use `GET /api/sites` to list available slugs.
+  The site identifier (e.g., `example-com`).
 </ParamField>
 
-<ParamField path="name" type="string" required>
-  The view name as it appears in the manifest and OpenAPI spec, e.g. `product_list`. Use `GET /api/sites/:slug/openapi.json` to see all available view names for a site.
+<ParamField path="state" type="string" required>
+  The state name from the manifest (e.g., `LoginPage`, `CheckoutPage`).
 </ParamField>
 
-### Query parameters
-
-Inputs required to navigate to the view's page state are passed as query string parameters. The required parameters for each view are documented in the OpenAPI spec under the view's `parameters` array.
-
-### Example
-
-<CodeGroup>
-
-```bash Request
-curl "http://127.0.0.1:8787/api/sites/example-com/views/product_list"
-```
-
-```json Response
-{
-  "ok": true,
-  "data": [
-    { "name": "Widget Pro", "price": 49.99, "in_stock": true },
-    { "name": "Widget Lite", "price": 19.99, "in_stock": false }
-  ],
-  "state": "ProductsPage",
-  "steps": [
-    "navigate:https://example.com/products",
-    "view:product_list"
-  ]
-}
-```
-
-</CodeGroup>
-
----
-
-## Execute an action
-
-### `POST /api/sites/:slug/actions/:name`
-
-Navigates to the page state that contains the action, then executes it using the locators and interaction strategy captured during discovery. The server sends the instruction to the Chrome extension, which performs the interaction on the live page.
-
-### Path parameters
-
-<ParamField path="slug" type="string" required>
-  The site identifier, e.g. `example-com`.
+<ParamField path="action" type="string" required>
+  The action name within the state (e.g., `submit_login`, `add_to_cart`).
 </ParamField>
 
-<ParamField path="name" type="string" required>
-  The action name as it appears in the manifest and OpenAPI spec, e.g. `add_to_cart`. Use `GET /api/sites/:slug/openapi.json` to see all available action names and their input schemas.
-</ParamField>
+## Request body
 
-### Request body
-
-Action inputs are supplied as a JSON object. The required and optional fields are defined in the OpenAPI spec's `requestBody` schema for the operation.
+Action inputs are supplied as a flat JSON object. The available inputs are defined in the manifest under the action's `inputs` array.
 
 ```json
 {
-  "quantity": 2
+  "email": "user@example.com",
+  "password": "secret"
 }
 ```
 
-### Example
+Actions with no inputs can be called with an empty body or `{}`.
+
+## Example
 
 <CodeGroup>
 
 ```bash Request
-curl -X POST http://127.0.0.1:8787/api/sites/example-com/actions/add_to_cart \
+curl -X POST http://127.0.0.1:8787/api/sites/example-com/actions/LoginPage/submit_login \
   -H "Content-Type: application/json" \
-  -d '{"quantity": 2}'
+  -d '{"email": "user@example.com", "password": "secret"}'
 ```
 
 ```json Response
 {
   "ok": true,
-  "state": "CartPage",
+  "state": "LoginPage",
   "steps": [
-    "navigate:https://example.com/products",
-    "action:add_to_cart"
+    "navigate:https://example.com/login",
+    "action:submit_login"
   ]
 }
 ```
 
 </CodeGroup>
+
+## Response fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `ok` | `boolean` | `true` on success |
+| `state` | `string` | The state name where the action was executed |
+| `steps` | `array` | Ordered list of steps the executor performed |
 
 ## Error responses
 
 | Status | Body |
 |--------|------|
-| `404` | `{ "ok": false, "error": "View 'product_list' not found" }` |
-| `404` | `{ "ok": false, "error": "Action 'add_to_cart' not found" }` |
-| `400` | `{ "ok": false, "error": "Invalid JSON body" }` |
-| `500` | `{ "ok": false, "error": "<execution error message>" }` |
+| `404` | `{ "error": "Manifest not found" }` |
+| `404` | `{ "error": "State 'BadState' not found" }` |
+| `404` | `{ "error": "Route 'bad_action' not found" }` |
+| `429` | `{ "error": "Max concurrent executions (3) reached. Try again later." }` |
+| `500` | `{ "error": "Action 'submit_login' failed: <message>" }` |
 
 <Warning>
-  Actions execute on the live browser tab. Make sure the Chrome extension is running and a matching tab is open before calling an action endpoint. If the extension is not connected, the request will time out or return a `500` error.
+  Actions execute on a real browser page. They perform real interactions — form submissions, button clicks, navigation. Make sure you understand what an action does before calling it against a production site.
 </Warning>
-
-<Note>
-  Form-filling operations (filling fields and submitting a form together) are exposed as **workflows**, not individual actions. See the [Workflows](/api/workflows) page for details.
-</Note>

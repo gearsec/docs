@@ -1,50 +1,62 @@
 ---
 title: "Introduction"
-description: "BrowserWire turns any website into a typed REST API your AI agent can call — no scraping, no manual wiring."
+description: "What BrowserWire is, who it's for, and how the record-train-execute pipeline works."
 ---
 
-BrowserWire is a contract layer between AI agents and websites. Instead of writing brittle DOM scrapers or maintaining fragile selectors, you browse a site once and BrowserWire builds a versioned manifest of everything it can do — entities, actions, views, and workflows — served as a REST API.
+BrowserWire is for AI agent developers, automation engineers, and anyone who needs programmatic access to websites that don't have an API. Instead of writing brittle scrapers or maintaining CSS selectors, you record a browser session and let BrowserWire's AI figure out the structure.
+
+## The problem
+
+Most websites don't expose APIs. To automate them, you typically write DOM scrapers, maintain XPath selectors, and hope the site doesn't change its markup. This breaks constantly.
+
+## How BrowserWire solves it
+
+BrowserWire takes a different approach: **record, train, execute**.
+
+1. **Record** — You open a real browser via the CLI and interact with a website normally. BrowserWire captures every DOM mutation, navigation, and interaction as a structured recording using [rrweb](https://www.rrweb.io/).
+
+2. **Train** — The recording is uploaded to BrowserWire's cloud training pipeline. A vision-capable LLM analyzes the session and produces a **manifest** — a typed description of the site as a state machine with pages, views (data you can read), and actions (things you can do).
+
+3. **Execute** — You start a local execution server with `bw run`. It fetches your manifests and exposes them as REST endpoints. When you call an endpoint, BrowserWire opens a real browser behind the scenes, navigates to the right page, and executes the view or action.
+
+## Key concepts
+
+| Concept | Description |
+|---------|-------------|
+| **Recording** | A captured browser session (rrweb events) that serves as training data. |
+| **Training** | The cloud pipeline that analyzes a recording and produces a manifest. |
+| **Manifest** | A typed state machine describing a site's pages, views, and actions. |
+| **State** | A distinct page or screen in the site (e.g., `HomePage`, `LoginPage`). |
+| **View** | Structured data that can be read from a state (e.g., `product_list`, `user_profile`). |
+| **Action** | An interaction that can be performed in a state (e.g., `click_login`, `submit_form`). |
+
+## Architecture
 
 ```
-You browse a site → BrowserWire watches → You get a typed API
+┌─────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│  bw record   │────▶│  Cloud Training   │────▶│    Manifest      │
+│  (Playwright) │     │  Pipeline (LLM)   │     │  (State Machine) │
+└─────────────┘     └──────────────────┘     └────────┬────────┘
+                                                       │
+                                                       ▼
+                                              ┌─────────────────┐
+                                              │    bw run         │
+                                              │  (Local Server)   │
+                                              │  localhost:8787   │
+                                              └─────────────────┘
 ```
 
-## Who it's for
-
-BrowserWire is built for **AI agent developers** and **automation engineers** who need to give agents reliable, typed access to web interfaces without maintaining low-level browser automation scripts.
-
-If you've ever written a Playwright script to log into a dashboard, fill out a form, or extract structured data — and then had it break the next time the site updated — BrowserWire is designed to solve that.
-
-## Key capabilities
-
-**Vision LLM discovery** — BrowserWire uses a vision-capable LLM to perceive what's on the page. It identifies interactive elements, understands their purpose, and synthesizes reliable locators without relying on fragile CSS or XPath selectors.
-
-**Typed APIs** — Discovered pages produce callable operations like `submit_login(email, password)` with input schemas. Your agent gets a structured interface, not a blob of HTML.
-
-**OpenAPI output** — Every discovered site gets an OpenAPI 3.0 spec at `/api/sites/:slug/openapi.json`. Point any tool-using LLM at this spec and it can discover and call actions without any manual integration.
-
-**Chrome extension** — A Chrome extension runs alongside your browser during discovery. It captures page state and communicates with the BrowserWire server over a local WebSocket connection. The extension only activates when you explicitly start an exploration session.
-
-**Desktop app** — An Electron-based desktop app bundles the server and extension management into a single native window, as an alternative to running the CLI manually.
-
-## How the discovery pipeline works
-
-When you start an exploration session, BrowserWire's pipeline runs the following stages:
-
-1. **Perception** — The Chrome extension captures the current page state and sends it to the local server. The server passes a screenshot and page structure to a vision LLM, which identifies what's visible and what the user can interact with.
-
-2. **Locator synthesis** — For each discovered element, the pipeline generates reliable locators (semantic selectors, ARIA attributes, text content) so actions can be replayed consistently even if the page layout shifts.
-
-3. **Manifest compilation** — Discovered interactions are compiled into a typed manifest describing entities (data objects on the page), actions (things you can do), and workflows (multi-step sequences). The manifest is versioned and stored locally.
-
-4. **API generation** — The manifest is automatically translated into a REST API with an OpenAPI spec. You can query the spec, browse interactive Swagger docs, and execute actions over HTTP — all without writing any code.
+- The **CLI** runs on your machine. It handles recording and local execution.
+- The **training pipeline** runs in the cloud. It processes recordings and generates manifests.
+- The **dashboard** at [app.browserwire.io](https://app.browserwire.io) lets you view recordings, monitor training, and browse generated endpoints.
+- **Execution** is fully local — `bw run` launches a Playwright browser on your machine and serves a REST API on `127.0.0.1:8787`.
 
 <Note>
-  BrowserWire runs entirely on your machine. The extension only sends page data to the local CLI server — nothing leaves your computer except the LLM API calls you configure.
+  Your recordings are uploaded to BrowserWire's cloud for training. The execution server (`bw run`) runs entirely on your machine — API calls are served locally through a real browser instance.
 </Note>
 
 ## Next steps
 
 <Card title="Quick Start" icon="rocket" href="/quickstart">
-  Install BrowserWire and discover your first site in under five minutes
+  Install BrowserWire and get your first API running in under five minutes.
 </Card>

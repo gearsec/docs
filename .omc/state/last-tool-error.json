@@ -1,0 +1,7 @@
+{
+  "tool_name": "Read",
+  "tool_input_preview": "{\"file_path\":\"/Users/vedhantagarwal/browserwire-saas/cli/src/commands/login.js\"}",
+  "error": "File does not exist. Note: your current working directory is /Users/vedhantagarwal/docs.",
+  "timestamp": "2026-04-15T12:28:55.573Z",
+  "retry_count": 4
+}

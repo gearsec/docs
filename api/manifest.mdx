@@ -1,16 +1,16 @@
 ---
-title: "Manifest"
-description: "Fetch the raw BrowserWireManifest JSON that describes everything discovered about a site."
+title: "Get Manifest"
+description: "Fetch the full manifest JSON for a discovered site."
 ---
 
 ## `GET /api/sites/:slug/manifest`
 
-Returns the full `BrowserWireManifest` JSON for the specified site. The manifest is the source of truth for the site's structure — the OpenAPI spec, route table, and all executable endpoints are derived from it.
+Returns the complete manifest for a site — the typed state machine with all states, views, and actions. This is the source of truth for everything the AI discovered.
 
 ## Path parameters
 
 <ParamField path="slug" type="string" required>
-  The site identifier. Derived from the site's origin by lowercasing and replacing non-alphanumeric characters with hyphens. For example, `https://example.com` → `example-com`.
+  The site identifier (e.g., `example-com`). Use `GET /api/sites` to list available slugs.
 </ParamField>
 
 ## Example
@@ -23,22 +23,39 @@ curl http://127.0.0.1:8787/api/sites/example-com/manifest
 
 ```json Response
 {
-  "contractVersion": "1.0.0",
-  "manifestVersion": "1.0.0",
-  "metadata": {
-    "id": "mfst_01j9z3k4e0000qr8g2v7x5p1w3",
-    "site": "https://example.com",
-    "createdAt": "2025-01-15T10:23:45.000Z",
-    "updatedAt": "2025-01-15T10:25:12.000Z"
-  },
+  "id": "mf_abc123",
   "domain": "example.com",
-  "domainDescription": "Example site with login and dashboard flows.",
-  "entities": [ ... ],
-  "actions": [ ... ],
-  "views": [ ... ],
-  "pages": [ ... ],
-  "workflowActions": [ ... ],
-  "errors": [ ... ]
+  "origin": "https://example.com",
+  "slug": "example-com",
+  "states": [
+    {
+      "id": "state_1",
+      "name": "HomePage",
+      "url_pattern": "https://example.com/",
+      "views": [
+        { "name": "featured_products", "code": "..." }
+      ],
+      "actions": [
+        { "name": "click_login", "inputs": [], "code": "..." }
+      ]
+    },
+    {
+      "id": "state_2",
+      "name": "LoginPage",
+      "url_pattern": "https://example.com/login",
+      "views": [],
+      "actions": [
+        {
+          "name": "submit_login",
+          "inputs": [
+            { "name": "email", "type": "string" },
+            { "name": "password", "type": "string" }
+          ],
+          "code": "..."
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -48,24 +65,28 @@ curl http://127.0.0.1:8787/api/sites/example-com/manifest
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `contractVersion` | `string` | Semver of the BrowserWire contract DSL used to produce this manifest. |
-| `manifestVersion` | `string` | Semver version of this specific manifest; increments on re-discovery. |
-| `metadata` | `object` | ID, site URL, and creation/update timestamps. |
-| `domain` | `string` | LLM-assigned domain label for the site (e.g. `"authentication"`, `"e-commerce"`). |
-| `domainDescription` | `string` | Human-readable description of what the site does. |
-| `entities` | `array` | Identified UI entities (buttons, forms, fields) with locator strategies and confidence scores. |
-| `actions` | `array` | Executable interactions — each has a name, input schema, locator set, pre/postconditions, and error codes. |
-| `views` | `array` | Structured data extraction definitions — each specifies what data to read and how to locate it. |
-| `pages` | `array` | Route-organized groupings of views and actions by URL pattern. |
-| `workflowActions` | `array` | High-level task workflows composed from ordered sequences of navigate, fill, click, and submit steps. |
-| `errors` | `array` | Named error definitions referenced by actions, with classification (`recoverable`, `fatal`, `security`). |
+| `id` | `string` | Unique manifest identifier |
+| `domain` | `string` | Website domain |
+| `origin` | `string` | Full origin URL |
+| `slug` | `string` | URL-safe site identifier |
+| `states` | `array` | Page states, each with views and actions |
+
+Each state contains:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Unique state identifier |
+| `name` | `string` | Semantic name (e.g., `HomePage`, `LoginPage`) |
+| `url_pattern` | `string` | RFC 6570 URI template for navigating to this state |
+| `views` | `array` | Data extraction functions (name + code) |
+| `actions` | `array` | Interaction functions (name + inputs + code) |
 
 ## Error responses
 
 | Status | Body |
 |--------|------|
-| `404` | `{ "ok": false, "error": "No manifest found for site 'example-com'" }` |
+| `404` | `{ "error": "Not found" }` |
 
 <Note>
-  The manifest is generated after you finish an exploration session. If you receive a 404, the site has not been discovered yet or the slug is incorrect. Check `/api/sites` to see all available slugs.
+  If you receive a 404, the site hasn't been trained yet or the slug is incorrect. Check `GET /api/sites` for available slugs.
 </Note>

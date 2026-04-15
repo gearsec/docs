@@ -1,13 +1,13 @@
 ---
 title: "List Sites"
-description: "Retrieve all sites that BrowserWire has discovered so far in the current session."
+description: "Retrieve all manifests cached by the local execution server."
 ---
 
 ## `GET /api/sites`
 
-Returns a list of every site that has been discovered since the server started. Each entry includes the slug you use to address that site in all other API calls.
+Returns all manifests that the server pre-fetched when `bw run` started. Each entry includes the slug used to address that site in all other endpoints.
 
-No parameters are required.
+No parameters required.
 
 ## Example
 
@@ -18,61 +18,44 @@ curl http://127.0.0.1:8787/api/sites
 ```
 
 ```json Response
-{
-  "ok": true,
-  "sites": [
-    {
-      "slug": "example-com",
-      "origin": "https://example.com",
-      "stateCount": 4,
-      "viewCount": 3,
-      "actionCount": 7
-    },
-    {
-      "slug": "app-acme-io",
-      "origin": "https://app.acme.io",
-      "stateCount": 12,
-      "viewCount": 8,
-      "actionCount": 21
-    }
-  ]
-}
+[
+  {
+    "id": "mf_abc123",
+    "domain": "example.com",
+    "origin": "https://example.com",
+    "slug": "example-com",
+    "stateCount": 4,
+    "viewCount": 3,
+    "actionCount": 7
+  },
+  {
+    "id": "mf_def456",
+    "domain": "app.acme.io",
+    "origin": "https://app.acme.io",
+    "slug": "app-acme-io",
+    "stateCount": 12,
+    "viewCount": 8,
+    "actionCount": 21
+  }
+]
 ```
 
 </CodeGroup>
 
 ## Response fields
 
-<ResponseField name="ok" type="boolean" required>
-  Always `true` for a successful response.
-</ResponseField>
+The response is a JSON array of manifest summary objects. Each object contains:
 
-<ResponseField name="sites" type="array" required>
-  List of discovered site objects. Empty (`[]`) if no sites have been discovered yet.
-
-  <Expandable title="Site object">
-    <ResponseField name="slug" type="string" required>
-      URL-safe identifier for the site, derived from its origin. Use this as the `:slug` path parameter in all site-scoped endpoints. For example, `https://example.com` becomes `example-com`.
-    </ResponseField>
-
-    <ResponseField name="origin" type="string" required>
-      The full origin (scheme + host) of the discovered site, e.g. `https://example.com`.
-    </ResponseField>
-
-    <ResponseField name="stateCount" type="number" required>
-      Number of distinct page states discovered for this site.
-    </ResponseField>
-
-    <ResponseField name="viewCount" type="number" required>
-      Number of structured data views extracted from the site's pages.
-    </ResponseField>
-
-    <ResponseField name="actionCount" type="number" required>
-      Number of executable UI actions discovered across all states.
-    </ResponseField>
-  </Expandable>
-</ResponseField>
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Unique manifest identifier |
+| `domain` | `string` | Website domain (e.g., `example.com`) |
+| `origin` | `string` | Full origin (e.g., `https://example.com`) |
+| `slug` | `string` | URL-safe site identifier used in all other endpoints |
+| `stateCount` | `number` | Number of page states in the manifest |
+| `viewCount` | `number` | Number of data views discovered |
+| `actionCount` | `number` | Number of executable actions discovered |
 
 <Note>
-  Sites are discovered by browsing in Chrome with the BrowserWire extension active. If this list is empty, open a site in Chrome, start an exploration session from the extension sidepanel, and navigate around the page.
+  The list reflects manifests fetched at server startup. If you record and train a new site while `bw run` is active, restart the server to pick up the new manifest.
 </Note>

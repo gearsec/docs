@@ -4,58 +4,65 @@ description: "Answers to common questions about BrowserWire."
 ---
 
 <AccordionGroup>
-  <Accordion title="What LLM providers does BrowserWire support?">
-    BrowserWire supports four providers:
-
-    | Provider | Default model | API key required |
-    |----------|--------------|-----------------|
-    | `openai` | `gpt-4o` | Yes |
-    | `anthropic` | `claude-sonnet-4-20250514` | Yes |
-    | `gemini` | `gemini-2.5-flash` | Yes |
-    | `ollama` | `llama3` | No |
-
-    Ollama runs locally, so no API key is needed. Set your provider with the `BROWSERWIRE_LLM_PROVIDER` environment variable or the `--llm-provider` flag.
+  <Accordion title="What are the system requirements?">
+    BrowserWire requires **Node.js 22+** and runs on **macOS or Linux**. Chromium is installed automatically by Playwright during `npm install`.
   </Accordion>
 
-  <Accordion title="Does BrowserWire send my browsing data anywhere?">
-    No. All processing happens locally on your machine. The extension communicates only with the BrowserWire server running on localhost. No data is sent to external servers, and there is no analytics or telemetry of any kind.
+  <Accordion title="Does BrowserWire upload my data?">
+    Yes — recordings (DOM events and interactions) are uploaded to BrowserWire's cloud for AI training. However, the execution server (`bw run`) runs entirely on your machine. API calls are served locally through a real browser instance.
 
     See the [Privacy](/reference/privacy) page for full details.
   </Accordion>
 
-  <Accordion title="Why does the extension need the <all_urls> permission?">
-    BrowserWire needs to inject its content script on any site you choose to discover APIs from. Because you can point it at any website, the extension must be allowed to run on all URLs.
+  <Accordion title="What's the difference between views and actions?">
+    **Views** read structured data from a page — product lists, user profiles, order summaries. They're exposed as `GET` endpoints.
 
-    The extension only activates when you explicitly start an exploration session from the side panel — it does not run in the background or monitor your browsing.
-  </Accordion>
-
-  <Accordion title="What's the difference between actions and workflows?">
-    **Actions** are individual UI operations — clicking a button, filling in a field, selecting an option.
-
-    **Workflows** are multi-step sequences that chain actions together to accomplish a complete task, such as logging in or submitting a form. When you call a workflow over the REST API, BrowserWire executes each action in sequence on the live page.
+    **Actions** perform interactions — clicking buttons, filling forms, submitting data. They're exposed as `POST` endpoints and can accept input parameters.
   </Accordion>
 
   <Accordion title="Can I use BrowserWire with any website?">
-    Yes. BrowserWire works with any website you can open in Chrome. The quality of what gets discovered depends on how much you interact with the site during the exploration session — the more you navigate and use the UI, the more entities and actions BrowserWire can capture.
+    Yes. BrowserWire works with any website you can open in a browser. The quality of the generated API depends on how thoroughly you interact with the site during recording — the more pages you visit and features you use, the more views and actions the AI discovers.
   </Accordion>
 
   <Accordion title="How do I update the manifest for a site?">
-    Run another exploration session on the same site. BrowserWire will update the existing manifest with any newly discovered entities and actions. You don't need to delete the old manifest first.
+    Record the same site again with `bw record`. Each recording triggers a new training run that replaces the previous manifest. You can focus on flows you missed in earlier recordings.
   </Accordion>
 
-  <Accordion title="The server isn't starting. What should I check?">
-    Check the following:
-
-    1. Make sure `BROWSERWIRE_LLM_PROVIDER` and `BROWSERWIRE_LLM_API_KEY` are set (or passed as CLI flags).
-    2. Check that port `8787` isn't already in use by another process.
-    3. Run `browserwire --help` to see all available options and confirm your flags are correct.
-
-    <Tip>
-      Run `browserwire --debug` for verbose logging that can help identify the problem.
-    </Tip>
+  <Accordion title="How long does training take?">
+    Training typically takes 1–2 minutes. You can monitor progress on the [dashboard](https://app.browserwire.io/dashboard) — look for the training status badge next to your recording.
   </Accordion>
 
-  <Accordion title="Can I run BrowserWire headlessly?">
-    The CLI server itself is headless and runs without a browser. However, discovery requires an active Chrome session — either through the Chrome extension or the desktop app's embedded browser — because BrowserWire needs to observe real page interactions to build a manifest.
+  <Accordion title="The server says 'Not logged in'. What do I do?">
+    Run `bw login` to authenticate, then try `bw run` again. Your session token may have expired (tokens are valid for 30 days).
+
+    For CI environments, set the `BW_TOKEN` environment variable instead.
+  </Accordion>
+
+  <Accordion title="I'm getting 429 errors from bw run.">
+    The execution server limits concurrent requests (default: 3). Each request opens a browser page, so too many parallel requests exhaust the pool.
+
+    Increase the limit:
+    ```bash
+    bw run --max-concurrent 5
+    ```
+  </Accordion>
+
+  <Accordion title="Can I run bw run in headless mode?">
+    Yes:
+    ```bash
+    bw run --headless
+    ```
+    This runs the Playwright browser without a visible window. Useful for servers or CI environments.
+  </Accordion>
+
+  <Accordion title="Port 8787 is already in use.">
+    Use a different port:
+    ```bash
+    bw run --port 3000
+    ```
+  </Accordion>
+
+  <Accordion title="Is BrowserWire free?">
+    BrowserWire is currently in **Early Access** and everything is free. You'll be notified before any pricing changes.
   </Accordion>
 </AccordionGroup>

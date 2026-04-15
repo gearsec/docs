@@ -1,0 +1,281 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1776255916125,
+  "projectRoot": "/Users/vedhantagarwal/docs",
+  "techStack": {
+    "languages": [],
+    "frameworks": [],
+    "packageManager": null,
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "api": {
+      "path": "api",
+      "purpose": "API routes",
+      "fileCount": 7,
+      "lastAccessed": 1776255916115,
+      "keyFiles": [
+        "actions.mdx",
+        "health.mdx",
+        "manifest.mdx",
+        "openapi.mdx",
+        "overview.mdx"
+      ]
+    },
+    "concepts": {
+      "path": "concepts",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1776255916115,
+      "keyFiles": [
+        "discovery.mdx",
+        "manifest.mdx",
+        "workflows.mdx"
+      ]
+    },
+    "configuration": {
+      "path": "configuration",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1776255916116,
+      "keyFiles": [
+        "llm-providers.mdx",
+        "settings.mdx"
+      ]
+    },
+    "guides": {
+      "path": "guides",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1776255916116,
+      "keyFiles": [
+        "agent-integration.mdx",
+        "desktop-app.mdx",
+        "discover-a-site.mdx"
+      ]
+    },
+    "reference": {
+      "path": "reference",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1776255916116,
+      "keyFiles": [
+        "cli.mdx",
+        "faq.mdx",
+        "privacy.mdx"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "docs.json",
+      "accessCount": 3,
+      "lastAccessed": 1776256240465,
+      "type": "file"
+    },
+    {
+      "path": "index.mdx",
+      "accessCount": 3,
+      "lastAccessed": 1776259894601,
+      "type": "file"
+    },
+    {
+      "path": "introduction.mdx",
+      "accessCount": 3,
+      "lastAccessed": 1776259913220,
+      "type": "file"
+    },
+    {
+      "path": "quickstart.mdx",
+      "accessCount": 3,
+      "lastAccessed": 1776259927064,
+      "type": "file"
+    },
+    {
+      "path": "installation.mdx",
+      "accessCount": 3,
+      "lastAccessed": 1776259938591,
+      "type": "file"
+    },
+    {
+      "path": "concepts/manifest.mdx",
+      "accessCount": 3,
+      "lastAccessed": 1776259999248,
+      "type": "file"
+    },
+    {
+      "path": "guides/agent-integration.mdx",
+      "accessCount": 3,
+      "lastAccessed": 1776260038837,
+      "type": "file"
+    },
+    {
+      "path": "reference/cli.mdx",
+      "accessCount": 3,
+      "lastAccessed": 1776260070864,
+      "type": "file"
+    },
+    {
+      "path": "reference/privacy.mdx",
+      "accessCount": 3,
+      "lastAccessed": 1776260083843,
+      "type": "file"
+    },
+    {
+      "path": "reference/faq.mdx",
+      "accessCount": 3,
+      "lastAccessed": 1776260095424,
+      "type": "file"
+    },
+    {
+      "path": "api/overview.mdx",
+      "accessCount": 3,
+      "lastAccessed": 1776260105023,
+      "type": "file"
+    },
+    {
+      "path": "api/health.mdx",
+      "accessCount": 3,
+      "lastAccessed": 1776260109733,
+      "type": "file"
+    },
+    {
+      "path": "api/sites.mdx",
+      "accessCount": 3,
+      "lastAccessed": 1776260116312,
+      "type": "file"
+    },
+    {
+      "path": "api/manifest.mdx",
+      "accessCount": 3,
+      "lastAccessed": 1776260126557,
+      "type": "file"
+    },
+    {
+      "path": "api/actions.mdx",
+      "accessCount": 3,
+      "lastAccessed": 1776260143561,
+      "type": "file"
+    },
+    {
+      "path": "README.md",
+      "accessCount": 1,
+      "lastAccessed": 1776256002005,
+      "type": "file"
+    },
+    {
+      "path": "concepts/discovery.mdx",
+      "accessCount": 1,
+      "lastAccessed": 1776256004460,
+      "type": "file"
+    },
+    {
+      "path": "concepts/workflows.mdx",
+      "accessCount": 1,
+      "lastAccessed": 1776256004726,
+      "type": "file"
+    },
+    {
+      "path": "configuration/llm-providers.mdx",
+      "accessCount": 1,
+      "lastAccessed": 1776256005012,
+      "type": "file"
+    },
+    {
+      "path": "configuration/settings.mdx",
+      "accessCount": 1,
+      "lastAccessed": 1776256005107,
+      "type": "file"
+    },
+    {
+      "path": "guides/discover-a-site.mdx",
+      "accessCount": 1,
+      "lastAccessed": 1776256005443,
+      "type": "file"
+    },
+    {
+      "path": "guides/desktop-app.mdx",
+      "accessCount": 1,
+      "lastAccessed": 1776256007722,
+      "type": "file"
+    },
+    {
+      "path": "api/openapi.mdx",
+      "accessCount": 1,
+      "lastAccessed": 1776256010264,
+      "type": "file"
+    },
+    {
+      "path": "api/workflows.mdx",
+      "accessCount": 1,
+      "lastAccessed": 1776256010576,
+      "type": "file"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "accessCount": 1,
+      "lastAccessed": 1776256013970,
+      "type": "file"
+    },
+    {
+      "path": "AGENTS.md",
+      "accessCount": 1,
+      "lastAccessed": 1776256014180,
+      "type": "file"
+    },
+    {
+      "path": "concepts/recording.mdx",
+      "accessCount": 1,
+      "lastAccessed": 1776259964499,
+      "type": "file"
+    },
+    {
+      "path": "concepts/training.mdx",
+      "accessCount": 1,
+      "lastAccessed": 1776259981133,
+      "type": "file"
+    },
+    {
+      "path": "guides/record-a-site.mdx",
+      "accessCount": 1,
+      "lastAccessed": 1776260017756,
+      "type": "file"
+    },
+    {
+      "path": "guides/dashboard.mdx",
+      "accessCount": 1,
+      "lastAccessed": 1776260051593,
+      "type": "file"
+    },
+    {
+      "path": "api/views.mdx",
+      "accessCount": 1,
+      "lastAccessed": 1776260133837,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

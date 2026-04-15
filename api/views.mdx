@@ -1,0 +1,84 @@
+---
+title: "Execute View"
+description: "Read structured data from a page by executing a discovered view."
+---
+
+## `GET /api/sites/:slug/views/:state/:view`
+
+Navigates to the page state and executes the view's extraction code against the live DOM. Returns structured data.
+
+When you call this endpoint, the execution server:
+
+1. Looks up the manifest for the site
+2. Finds the target state and view
+3. Opens a new browser page
+4. Navigates to the state's URL
+5. Waits for the DOM to settle
+6. Runs the view's extraction code
+7. Returns the result as JSON
+
+## Path parameters
+
+<ParamField path="slug" type="string" required>
+  The site identifier (e.g., `example-com`).
+</ParamField>
+
+<ParamField path="state" type="string" required>
+  The state name from the manifest (e.g., `HomePage`, `SearchResults`).
+</ParamField>
+
+<ParamField path="view" type="string" required>
+  The view name within the state (e.g., `product_list`, `user_profile`).
+</ParamField>
+
+## Query parameters
+
+If the state's URL pattern contains template variables (e.g., `/products/{id}`), pass the values as query parameters:
+
+```bash
+curl "http://127.0.0.1:8787/api/sites/example-com/views/ProductPage/product_detail?id=42"
+```
+
+## Example
+
+<CodeGroup>
+
+```bash Request
+curl http://127.0.0.1:8787/api/sites/example-com/views/HomePage/product_list
+```
+
+```json Response
+{
+  "ok": true,
+  "data": [
+    { "name": "Widget Pro", "price": 49.99, "in_stock": true },
+    { "name": "Widget Lite", "price": 19.99, "in_stock": false }
+  ],
+  "state": "HomePage",
+  "steps": [
+    "navigate:https://example.com/",
+    "view:product_list"
+  ]
+}
+```
+
+</CodeGroup>
+
+## Response fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `ok` | `boolean` | `true` on success |
+| `data` | `any` | The structured data extracted by the view |
+| `state` | `string` | The state name where the view was executed |
+| `steps` | `array` | Ordered list of steps the executor performed |
+
+## Error responses
+
+| Status | Body |
+|--------|------|
+| `404` | `{ "error": "Manifest not found" }` |
+| `404` | `{ "error": "State 'BadState' not found" }` |
+| `404` | `{ "error": "Route 'bad_view' not found" }` |
+| `429` | `{ "error": "Max concurrent executions (3) reached. Try again later." }` |
+| `500` | `{ "error": "View 'product_list' failed: <message>" }` |

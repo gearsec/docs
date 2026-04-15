@@ -1,0 +1,66 @@
+---
+title: "Dashboard"
+description: "View recordings, monitor training, and browse generated APIs in the web dashboard."
+---
+
+The BrowserWire dashboard at [app.browserwire.io](https://app.browserwire.io) is where you manage your recordings, monitor training progress, and explore the APIs that have been generated from your sessions.
+
+## Signing in
+
+The dashboard uses the same account as the CLI. Sign in at [app.browserwire.io/sign-in](https://app.browserwire.io/sign-in) with the same credentials you used for `bw login`.
+
+## Overview
+
+The main dashboard page shows a summary of your account:
+
+- **Manifests discovered** — total number of generated APIs
+- **Recordings** — total number of browser sessions captured
+- **Active training** — number of training runs currently in progress (with a live indicator)
+- **Recent Manifests** and **Recent Recordings** — quick-access lists of your latest items
+
+## APIs
+
+Navigate to **APIs** in the sidebar to see all your generated manifests. Each row shows:
+
+| Column | Description |
+|--------|-------------|
+| **Domain** | The website domain (e.g., `example.com`) |
+| **Endpoints** | Total number of views + actions discovered |
+| **Updated** | When the manifest was last generated |
+
+Click a domain to open the **Endpoint Explorer**, which lists every endpoint with:
+
+- **Method badge** — `GET` for views, `POST` for actions
+- **Endpoint name** — the view or action name
+- **Full URL path** — the local API path (e.g., `/api/sites/example-com/views/HomePage/product_list`)
+- **curl command** — copy-ready command to test the endpoint via `bw run`
+
+All endpoints are shown with `http://127.0.0.1:8787` as the base URL, since they're served by your local execution server.
+
+## Recordings
+
+Navigate to **Recordings** in the sidebar to see all captured browser sessions. Each row shows:
+
+| Column | Description |
+|--------|-------------|
+| **Domain** | The website that was recorded |
+| **Events** | Number of rrweb events captured |
+| **Size** | Recording file size |
+| **Training** | Status badge — `running`, `complete`, or `error` |
+| **Date** | When the recording was created |
+
+Click a recording to view its details and replay the session.
+
+## Plan
+
+Navigate to **Plan** in the sidebar to view your current subscription. BrowserWire is currently in **Early Access** — everything is included for free. You'll be notified before pricing changes.
+
+## Workflow
+
+A typical workflow using the dashboard:
+
+1. **Record** — `bw record https://example.com` (creates a recording + triggers training)
+2. **Monitor** — watch the training badge on the Recordings page
+3. **Explore** — once complete, go to APIs and browse the generated endpoints
+4. **Copy curl** — grab the curl commands from the Endpoint Explorer
+5. **Execute** — run `bw run` locally and test the endpoints

@@ -1,116 +1,98 @@
 ---
 title: "Quick Start"
-description: "Install BrowserWire, load the Chrome extension, and discover your first site's API in minutes."
+description: "Install the CLI, record a site, and make your first API call in under 5 minutes."
 ---
 
-This guide walks you through installing BrowserWire, connecting the Chrome extension, and making your first API call against a discovered site.
-
-<Steps>
-  <Step title="Install the CLI">
-    Install BrowserWire globally with npm:
-
-    ```bash
-    npm install -g browserwire
-    ```
-
-    Or run it directly without installing:
-
-    ```bash
-    npx browserwire
-    ```
-  </Step>
-
-  <Step title="Load the Chrome extension">
-    The Chrome extension is bundled with the CLI. First, get the path to the extension directory:
-
-    ```bash
-    npx browserwire --extension-path
-    ```
-
-    Then load it in Chrome:
-
-    1. Go to `chrome://extensions`
-    2. Enable **Developer mode** using the toggle in the top right
-    3. Click **Load unpacked**
-    4. Select the path printed by the command above
-
-    <Note>
-      The Chrome Web Store release is in progress. For now, the extension must be loaded as an unpacked extension in developer mode.
-    </Note>
-  </Step>
-
-  <Step title="Configure your LLM provider">
-    BrowserWire uses a vision-capable LLM to perceive page content during discovery. Set your provider and API key as environment variables:
-
-    ```bash
-    export BROWSERWIRE_LLM_PROVIDER=openai   # openai | anthropic | gemini | ollama
-    export BROWSERWIRE_LLM_API_KEY=sk-...
-    ```
-
-    Supported providers and their default models:
-
-    | Provider | Default model | Requires API key |
-    |----------|---------------|------------------|
-    | `openai` | `gpt-4o` | Yes |
-    | `anthropic` | `claude-sonnet-4-20250514` | Yes |
-    | `gemini` | `gemini-2.5-flash` | Yes |
-    | `ollama` | `llama3` | No |
-
-    <Tip>
-      You can also set these in a `.env` file in your working directory, or in `~/.browserwire/config.json`. See [Installation](/installation) for all configuration options.
-    </Tip>
-  </Step>
-
-  <Step title="Start the server">
-    ```bash
-    browserwire
-    ```
-
-    The server starts on `http://127.0.0.1:8787` by default. You can open the API docs landing page at `http://127.0.0.1:8787/api/docs`.
-  </Step>
-
-  <Step title="Discover a site">
-    With the server running and the Chrome extension loaded:
-
-    1. Open any website in Chrome
-    2. Click the BrowserWire extension icon to open the sidepanel
-    3. Click **Start Exploring** and navigate around the site
-    4. Click **Stop Exploring** when you're done — BrowserWire builds the manifest in the background
-
-    The site will appear in the API once discovery finishes.
-  </Step>
-
-  <Step title="Query the discovered API">
-    List all sites you've discovered:
-
-    ```bash
-    curl http://localhost:8787/api/sites
-    ```
-
-    Fetch the OpenAPI spec for a specific site (replace `example-com` with your site's slug):
-
-    ```bash
-    curl http://localhost:8787/api/sites/example-com/openapi.json
-    ```
-
-    The slug is the domain with dots replaced by hyphens — for example, `example.com` becomes `example-com`.
-
-    <Tip>
-      Point your tool-using LLM directly at the OpenAPI spec URL. It contains all discovered actions with typed input schemas your agent can call without any manual wiring.
-    </Tip>
-  </Step>
-</Steps>
-
-## What's next
-
-Once a site is discovered, you can execute actions through the REST API. For example, to call a `submit_login` workflow:
+## 1. Install the CLI
 
 ```bash
-curl -X POST http://localhost:8787/api/sites/example-com/workflows/submit_login \
+npm install -g @browserwire/cli
+```
+
+This installs the `bw` command globally. Playwright and Chromium are installed automatically via the `postinstall` script.
+
+<Note>Requires **Node.js 22+** and **macOS or Linux**.</Note>
+
+## 2. Log in
+
+```bash
+bw login
+```
+
+Your browser opens for authentication. Once you sign in, a session token is saved locally at `~/.config/browserwire/config.json`.
+
+## 3. Record a site
+
+```bash
+bw record https://example.com
+```
+
+A Chrome browser opens. Navigate the site freely — the recording hasn't started yet.
+
+When you're ready, **press Enter** to start recording. Interact with the site: fill forms, click buttons, navigate pages. When you're done, **press Enter** again to stop.
+
+The recording is uploaded automatically, and training begins in the cloud. Your dashboard opens so you can monitor progress.
+
+## 4. Wait for training
+
+Training typically takes 1–2 minutes. You can monitor progress on the [dashboard](https://app.browserwire.io/dashboard) — look for the training status badge next to your recording.
+
+Once complete, a **manifest** appears in the APIs section of the dashboard with every view and action the AI discovered.
+
+## 5. Start the local server
+
+```bash
+bw run
+```
+
+```
+BrowserWire execution server running on http://127.0.0.1:8787
+  Health:    curl http://127.0.0.1:8787/api/health
+  Sites:     curl http://127.0.0.1:8787/api/sites
+  Headed mode | Max concurrent: 3
+```
+
+A browser launches in the background. The server pre-fetches your manifests and is ready to serve requests.
+
+## 6. Call your APIs
+
+List discovered sites:
+
+```bash
+curl http://127.0.0.1:8787/api/sites
+```
+
+Read a view (structured data from a page):
+
+```bash
+curl http://127.0.0.1:8787/api/sites/example-com/views/HomePage/product_list
+```
+
+Execute an action:
+
+```bash
+curl -X POST http://127.0.0.1:8787/api/sites/example-com/actions/LoginPage/submit_login \
   -H "Content-Type: application/json" \
   -d '{"email": "user@example.com", "password": "secret"}'
 ```
 
-BrowserWire routes the action through the Chrome extension, which executes it on the live page using the discovered locators.
+<Tip>
+  The slug (`example-com`) is the site's domain with dots replaced by hyphens. Check `GET /api/sites` to see all available slugs.
+</Tip>
 
-You can also browse interactive Swagger docs for any discovered site at `http://localhost:8787/api/sites/example-com/docs`.
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Record a Site" icon="circle-play" href="/guides/record-a-site">
+    Tips for getting the best results from recordings.
+  </Card>
+  <Card title="Agent Integration" icon="robot" href="/guides/agent-integration">
+    Connect your APIs to AI agents.
+  </Card>
+  <Card title="CLI Reference" icon="terminal" href="/reference/cli">
+    All commands and flags.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/overview">
+    Full endpoint documentation.
+  </Card>
+</CardGroup>

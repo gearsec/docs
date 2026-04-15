@@ -1,121 +1,92 @@
 ---
 title: "Installation"
-description: "System requirements, install options, and step-by-step instructions for setting up BrowserWire."
+description: "System requirements, install steps, and configuration for the BrowserWire CLI."
 ---
 
 ## System requirements
 
-- **Node.js** `>=18`
-- **Google Chrome** (any recent version)
+| Requirement | Details |
+|------------|---------|
+| **Node.js** | v22 or later |
+| **OS** | macOS or Linux |
+| **Browser** | Chromium (installed automatically by Playwright) |
 
 ## Install the CLI
 
-<CodeGroup>
-  ```bash npm
-  npm install -g browserwire
-  ```
-
-  ```bash npx (no install)
-  npx browserwire
-  ```
-</CodeGroup>
-
-After installing globally, the `browserwire` command is available in your terminal. If you use `npx`, replace `browserwire` with `npx browserwire` throughout this documentation.
-
-## Load the Chrome extension
-
-The BrowserWire Chrome extension is bundled with the CLI. You load it as an unpacked extension in developer mode.
-
-<Note>
-  The Chrome Web Store release is in progress. Until then, you must load the extension manually using the steps below.
-</Note>
-
-<Steps>
-  <Step title="Get the extension path">
-    Run this command to print the path to the bundled extension directory:
-
-    ```bash
-    npx browserwire --extension-path
-    ```
-
-    Copy the path that's printed — you'll need it in the next step.
-  </Step>
-
-  <Step title="Open Chrome extensions">
-    In Chrome, navigate to `chrome://extensions`.
-  </Step>
-
-  <Step title="Enable developer mode">
-    Toggle **Developer mode** on using the switch in the top-right corner of the page.
-  </Step>
-
-  <Step title="Load the extension">
-    Click **Load unpacked**, then select the directory path from step 1.
-
-    The BrowserWire extension will appear in your extensions list and its icon will appear in the Chrome toolbar.
-  </Step>
-</Steps>
-
-## Verify the server starts
-
-Start the BrowserWire server:
+Install `@browserwire/cli` globally via npm:
 
 ```bash
-browserwire
+npm install -g @browserwire/cli
 ```
 
-You should see output like:
+This makes the `bw` command available in your terminal. The `postinstall` script automatically downloads Playwright and a bundled Chromium browser.
 
+<Tip>You can also run commands without a global install using `npx @browserwire/cli <command>`.</Tip>
+
+Verify the installation:
+
+```bash
+bw --version
 ```
-BrowserWire server running on http://127.0.0.1:8787
-API docs: http://127.0.0.1:8787/api/docs
+
+## Authenticate
+
+BrowserWire requires an account for recording and training. Log in via the CLI:
+
+```bash
+bw login
 ```
 
-Open `http://127.0.0.1:8787/api/docs` in your browser to confirm the server is running. If the page loads, you're ready to start discovering sites.
+This opens your browser for authentication. After signing in, a session token is saved to `~/.config/browserwire/config.json` (file permissions `0600`). The token is valid for 30 days.
 
-<Warning>
-  BrowserWire requires a configured LLM provider before discovery can run. If you start the server without `BROWSERWIRE_LLM_PROVIDER` and `BROWSERWIRE_LLM_API_KEY` set, the server will start but discovery sessions will fail. See [Quick Start](/quickstart#configure-your-llm-provider) for setup instructions.
-</Warning>
+### CI / automation
 
-## Desktop app (alternative)
+For headless environments, set the `BW_TOKEN` environment variable instead of using interactive login:
 
-If you prefer not to run the CLI manually, BrowserWire also ships as an Electron desktop application. The desktop app bundles the server and extension management into a native window — no terminal required.
+```bash
+export BW_TOKEN="your-session-token"
+```
 
-Download the latest release from the [BrowserWire GitHub releases page](https://github.com/gearsec/browserwire/releases).
+When `BW_TOKEN` is set, the CLI uses it directly and skips the config file.
 
-## Configuration options
+## Configuration
 
-You can configure the server through environment variables, a `.env` file in your working directory, or a config file at `~/.browserwire/config.json`. CLI flags take highest precedence.
+The CLI reads configuration from these sources, in order of precedence:
+
+| Source | Example |
+|--------|---------|
+| **Environment variables** | `BW_TOKEN`, `BW_API_URL` |
+| **Config file** | `~/.config/browserwire/config.json` |
+| **CLI flags** | `--port`, `--headless`, `--max-concurrent` |
 
 ### Environment variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `BROWSERWIRE_LLM_PROVIDER` | LLM provider: `openai`, `anthropic`, `gemini`, or `ollama` | Yes |
-| `BROWSERWIRE_LLM_API_KEY` | API key for your chosen provider | Yes (except `ollama`) |
-| `BROWSERWIRE_LLM_MODEL` | Override the default model for your provider | No |
-| `BROWSERWIRE_LLM_BASE_URL` | Custom endpoint URL (for Ollama or API proxies) | No |
-| `BROWSERWIRE_HOST` | Listen address (default: `127.0.0.1`) | No |
-| `BROWSERWIRE_PORT` | Listen port (default: `8787`) | No |
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `BW_TOKEN` | Session token (skips config file) | — |
+| `BW_API_URL` | Backend API URL | `https://app.browserwire.io` |
 
 ### Config file
 
-Create `~/.browserwire/config.json` to persist settings across sessions:
+The config file is managed by `bw login` and stored at:
+
+```
+~/.config/browserwire/config.json
+```
+
+Or `$XDG_CONFIG_HOME/browserwire/config.json` if `XDG_CONFIG_HOME` is set.
 
 ```json
 {
-  "llmProvider": "openai",
-  "llmApiKey": "sk-...",
-  "llmModel": "gpt-4o"
+  "sessionToken": "eyJhbGciOi..."
 }
 ```
 
-### CLI flags
+<Warning>The config file contains your session token. It is created with `0600` permissions (owner-only read/write). Do not commit it to version control.</Warning>
+
+## Uninstall
 
 ```bash
-browserwire --host 0.0.0.0 --port 3000
-browserwire --llm-provider anthropic --llm-api-key sk-ant-...
-browserwire --help
+npm uninstall -g @browserwire/cli
+rm -rf ~/.config/browserwire
 ```
-
-Precedence order (highest wins): **CLI flags > environment variables / `.env` > config file > defaults**.

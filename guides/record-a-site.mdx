@@ -1,0 +1,99 @@
+---
+title: "Record a Site"
+description: "Step-by-step guide to recording a browser session and generating an API."
+---
+
+This guide walks through the full recording workflow — from launching the browser to viewing your generated endpoints on the dashboard.
+
+## Prerequisites
+
+- [BrowserWire CLI installed](/installation)
+- Logged in (`bw login`)
+
+## Step-by-step
+
+<Steps>
+  <Step title="Start a recording">
+    Run the record command with the URL you want to automate:
+
+    ```bash
+    bw record https://example.com
+    ```
+
+    A Chrome browser opens and navigates to the URL. You're not recording yet — take a moment to orient yourself.
+  </Step>
+
+  <Step title="Press Enter to start recording">
+    When you're ready, press **Enter** in your terminal. BrowserWire reloads the page for a clean snapshot and begins capturing all DOM events.
+
+    ```
+    Recording started. Navigate the site, then press Enter to stop.
+    ```
+  </Step>
+
+  <Step title="Interact with the site">
+    Navigate around the site and interact with the features you want to automate:
+
+    - **Fill out forms** — login, search, checkout
+    - **Click buttons and links** — navigation, actions, filters
+    - **Open dynamic UI** — dropdowns, modals, accordions, tabs
+    - **Visit multiple pages** — the more pages you cover, the more states the AI discovers
+
+    Take your time. Let pages fully load before interacting.
+  </Step>
+
+  <Step title="Press Enter to stop recording">
+    When you've covered the flows you need, press **Enter** again. BrowserWire stops capturing events and reports how many were collected:
+
+    ```
+    Captured 847 events.
+    Uploading recording...
+    Upload complete.
+    Starting training...
+    Opening dashboard: https://app.browserwire.io/dashboard/recordings/abc123
+    ```
+  </Step>
+
+  <Step title="Monitor training">
+    The dashboard opens automatically. You'll see your recording with a training status badge:
+
+    - **Running** — the AI is analyzing your recording
+    - **Complete** — a manifest has been generated
+    - **Error** — something went wrong (check the error message)
+
+    Training typically takes 1–2 minutes.
+  </Step>
+
+  <Step title="View your endpoints">
+    Once training completes, go to **APIs** in the dashboard sidebar. Click your domain to see all discovered endpoints — views (GET) and actions (POST) — organized by page state, with copy-ready curl commands.
+  </Step>
+
+  <Step title="Run locally">
+    Start the execution server and test your endpoints:
+
+    ```bash
+    bw run
+    curl http://127.0.0.1:8787/api/sites
+    ```
+  </Step>
+</Steps>
+
+## Tips for better results
+
+**Cover critical paths first.** Focus on the most important user flows — the ones you'll actually automate. A focused 2-minute recording of a login flow produces better results than 10 minutes of random browsing.
+
+**Navigate slowly.** Let pages fully load before clicking or typing. The AI needs stable DOM snapshots to accurately identify elements.
+
+**Interact with dynamic UI.** Open dropdowns, expand accordions, toggle state. These interactions help the AI discover actions that aren't visible in the initial page load.
+
+**Use a real account.** If the site requires authentication, log in during the recording. The AI can only discover pages and actions it can see.
+
+**Re-record to improve.** You can record the same site multiple times. Each recording triggers a new training run that replaces the previous manifest. Add recordings that cover flows you missed the first time.
+
+## Handling new tabs
+
+If you click a link that would normally open in a new tab, BrowserWire redirects the navigation into the current page so the recording stays continuous. You don't need to do anything special.
+
+## Browser disconnection
+
+If you close the browser accidentally while recording, BrowserWire detects the disconnection and saves whatever events were captured up to that point. The upload and training run proceed normally.

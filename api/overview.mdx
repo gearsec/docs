@@ -1,9 +1,9 @@
 ---
 title: "Overview"
-description: "Base URLs, request/response conventions, and a complete endpoint index for the BrowserWire REST API."
+description: "Base URL, request/response conventions, and endpoint index for the BrowserWire local execution API."
 ---
 
-The BrowserWire server exposes a REST API that lets you list discovered sites, read their manifests, and execute actions through the Chrome extension — all over plain HTTP.
+The `bw run` command starts a local HTTP server that serves your discovered APIs. All endpoints documented in this section are served by this local server.
 
 ## Base URL
 
@@ -11,37 +11,39 @@ The BrowserWire server exposes a REST API that lets you list discovered sites, r
 http://127.0.0.1:8787
 ```
 
-The host and port are configurable via the `--host` and `--port` CLI flags, or with the `BROWSERWIRE_HOST` / `BROWSERWIRE_PORT` environment variables.
+The port is configurable via `bw run --port <number>`.
 
 ## Request format
 
-All `POST` endpoints expect a JSON request body. Set the `Content-Type` header accordingly:
+`POST` endpoints expect a JSON request body with the `Content-Type` header:
 
 ```
 Content-Type: application/json
 ```
 
+`GET` endpoints accept inputs as query parameters.
+
 ## Response format
 
-All endpoints return JSON (except `/api/docs` and `/api/sites/:slug/docs`, which return HTML). Every JSON response includes an `"ok"` field indicating success or failure.
+All endpoints return JSON. Successful responses include an `ok: true` field. Error responses include an `error` message.
 
-**Success**
-
-```json
-{ "ok": true, ... }
-```
-
-**Error**
+**Success:**
 
 ```json
-{ "ok": false, "error": "<human-readable message>" }
+{ "ok": true, "data": [ ... ], "state": "HomePage", "steps": [ ... ] }
 ```
 
-HTTP status codes follow standard conventions: `200` for success, `400` for bad request bodies, `404` for unknown slugs or operation names, and `500` for execution errors.
+**Error:**
+
+```json
+{ "error": "View 'product_list' not found" }
+```
+
+HTTP status codes: `200` for success, `404` for unknown slugs/states/operations, `429` for max concurrent reached, `500` for execution errors.
 
 ## CORS
 
-All endpoints include permissive CORS headers, so you can call the API from any browser origin:
+All endpoints include permissive CORS headers:
 
 ```
 Access-Control-Allow-Origin: *
@@ -53,14 +55,10 @@ Access-Control-Allow-Headers: Content-Type
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/api/health` | Health check |
-| `GET` | `/api/sites` | List all discovered sites |
-| `GET` | `/api/docs` | HTML landing page with site index |
-| `GET` | `/api/sites/:slug/manifest` | Raw manifest JSON for a site |
-| `GET` | `/api/sites/:slug/openapi.json` | OpenAPI 3.0 spec for a site |
-| `GET` | `/api/sites/:slug/docs` | Swagger UI for a site |
-| `GET` | `/api/sites/:slug/views/:name` | Read structured view data |
-| `POST` | `/api/sites/:slug/actions/:name` | Execute a UI action |
-| `POST` | `/api/sites/:slug/workflows/:name` | Execute a multi-step workflow |
+| `GET` | [`/api/health`](/api/health) | Health check |
+| `GET` | [`/api/sites`](/api/sites) | List all cached manifests |
+| `GET` | [`/api/sites/:slug/manifest`](/api/manifest) | Full manifest JSON for a site |
+| `GET` | [`/api/sites/:slug/views/:state/:view`](/api/views) | Execute a view (read data) |
+| `POST` | [`/api/sites/:slug/actions/:state/:action`](/api/actions) | Execute an action (perform interaction) |
 
-The `:slug` path parameter identifies a discovered site. It is derived from the site's origin — for example, `https://example.com` becomes `example-com`.
+The `:slug` parameter identifies a site. It's derived from the domain — for example, `example.com` becomes `example-com`. Use `GET /api/sites` to see all available slugs.

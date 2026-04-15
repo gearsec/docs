@@ -1,78 +1,140 @@
 ---
-title: "CLI reference"
-description: "All flags and options for the browserwire command."
+title: "CLI Reference"
+description: "All commands and flags for the bw command-line tool."
 ---
 
-## Usage
+## Installation
 
 ```bash
-browserwire [options]
+npm install -g @browserwire/cli
 ```
 
-Run without installing using npx:
+The CLI is available as the `bw` command. Requires **Node.js 22+** on **macOS or Linux**.
+
+---
+
+## `bw login`
+
+Authenticate with BrowserWire via your browser.
 
 ```bash
-npx browserwire [options]
+bw login
 ```
 
-## Flags
+Opens your default browser to the BrowserWire sign-in page. After authentication, a session token is saved to `~/.config/browserwire/config.json` with `0600` permissions. The token is valid for 30 days.
+
+If the browser doesn't open automatically, the CLI prints a URL you can visit manually.
+
+**Timeout:** 120 seconds. If authentication isn't completed in time, the command exits with an error.
+
+---
+
+## `bw record <url>`
+
+Open a browser, navigate to a URL, and record a session.
+
+```bash
+bw record https://example.com
+```
+
+### How it works
+
+1. Launches a Chrome browser and navigates to the URL
+2. You browse freely — recording hasn't started yet
+3. Press **Enter** to start recording (page reloads for a clean snapshot)
+4. Interact with the site
+5. Press **Enter** to stop recording
+6. Events are uploaded and a training run is triggered automatically
+7. The dashboard opens in your browser
+
+### Authentication
+
+If your session token is missing or expired, the CLI prompts you to log in before uploading. You won't lose your recording — the auth flow runs after the session is captured.
+
+### New tabs
+
+Links that would open in a new tab are redirected into the current page so the recording stays continuous.
+
+---
+
+## `bw run`
+
+Start a local execution server that serves your discovered APIs.
+
+```bash
+bw run [options]
+```
+
+### Flags
 
 | Flag | Description | Default |
 |------|-------------|---------|
-| `--host` | Address the server listens on | `127.0.0.1` |
-| `--port` | Port the server listens on | `8787` |
-| `--debug` | Enable verbose debug logging | `false` |
-| `--llm-provider` | LLM provider to use: `openai`, `anthropic`, `gemini`, or `ollama` | — |
-| `--llm-api-key` | API key for the selected LLM provider | — |
-| `--extension-path` | Print the path to the bundled Chrome extension directory and exit | — |
-| `--help` | Show usage information and exit | — |
+| `-p, --port <number>` | Port to listen on | `8787` |
+| `--headless` | Run the browser in headless mode (no visible window) | `false` (headed) |
+| `--max-concurrent <number>` | Maximum concurrent browser pages for parallel requests | `3` |
 
-## Configuration precedence
+### What it does
 
-CLI flags take the highest precedence. When the same option is set in multiple places, the order is:
+1. Verifies you're logged in (exits with error if not)
+2. Fetches all your manifests from the BrowserWire API
+3. Launches a persistent Chrome browser (headed by default)
+4. Starts an HTTP server on `127.0.0.1:<port>`
 
-**CLI flags** > **environment variables / `.env`** > **`~/.browserwire/config.json`** > **defaults**
+### Endpoints served
 
-This means a `--port` flag always overrides `BROWSERWIRE_PORT` in your environment, which in turn overrides the value in your config file.
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/health` | Health check |
+| `GET` | `/api/sites` | List all cached manifests |
+| `GET` | `/api/sites/:slug/manifest` | Full manifest JSON |
+| `GET` | `/api/sites/:slug/views/:state/:view` | Execute a view |
+| `POST` | `/api/sites/:slug/actions/:state/:action` | Execute an action |
 
-## Examples
+### Examples
 
-Start the server with defaults:
-
-```bash
-browserwire
-```
-
-Start on a different port:
-
-```bash
-browserwire --port 3000
-```
-
-Start on all interfaces (accessible from other devices on the network):
+Start with defaults (port 8787, headed, 3 concurrent):
 
 ```bash
-browserwire --host 0.0.0.0
+bw run
 ```
 
-Start with a specific LLM provider:
+Start on a different port in headless mode:
 
 ```bash
-browserwire --llm-provider anthropic --llm-api-key sk-ant-...
+bw run --port 3000 --headless
 ```
 
-Start with debug logging enabled:
+Allow more concurrent executions:
 
 ```bash
-browserwire --debug
+bw run --max-concurrent 5
 ```
 
-Print the bundled extension path (for loading it in Chrome):
+### Concurrency
 
-```bash
-browserwire --extension-path
-```
+Each API request opens a new browser page. If the maximum concurrent limit is reached, additional requests receive a `429 Too Many Requests` response. Increase `--max-concurrent` if you need more parallelism.
 
-<Note>
-  `BROWSERWIRE_LLM_PROVIDER` and `BROWSERWIRE_LLM_API_KEY` are required for discovery to work. If you prefer not to use flags, set them as environment variables or in `~/.browserwire/config.json`.
-</Note>
+### Graceful shutdown
+
+Press **Ctrl+C** to stop the server. The browser is closed and the process exits cleanly.
+
+---
+
+## `bw --version`
+
+Print the CLI version.
+
+---
+
+## `bw --help`
+
+Show usage information for all commands.
+
+---
+
+## Environment variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `BW_TOKEN` | Session token (overrides config file, useful for CI) | — |
+| `BW_API_URL` | BrowserWire backend URL | `https://app.browserwire.io` |

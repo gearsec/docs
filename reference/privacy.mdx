@@ -1,37 +1,44 @@
 ---
 title: "Privacy"
-description: "How BrowserWire handles your data — all processing is local, nothing leaves your machine."
+description: "How BrowserWire handles your data — what's uploaded, what stays local, and what's shared."
 ---
 
-## Everything stays on your machine
+## What gets uploaded
 
-BrowserWire is designed to run entirely on your local device. The extension communicates only with the BrowserWire server running on localhost — no data is sent to external servers, cloud services, or third parties.
+When you run `bw record`, the captured DOM events (rrweb recordings) are uploaded to BrowserWire's cloud storage for training. This includes:
 
-This means:
+- DOM structure and mutations
+- User interactions (clicks, keystrokes, form fills)
+- Navigation events and URL changes
 
-- No analytics or telemetry collection
-- No usage tracking
-- No advertising
-- No data sharing of any kind
+Recordings are stored in your account and used solely to generate manifests. They are not shared with other users or third parties.
 
-## The `<all_urls>` permission
+## What stays local
 
-When you install the Chrome extension, you'll see that it requests permission to run on all websites. This permission is required because BrowserWire needs to inject its content script on any site you choose to explore.
+- **Session tokens** — stored at `~/.config/browserwire/config.json` with `0600` permissions
+- **API execution** — when you run `bw run`, all API calls are served locally through a browser on your machine. No execution data is sent to the cloud.
+- **Browser instances** — Playwright browsers launched by `bw record` and `bw run` run entirely on your machine
 
-The extension **only activates when you explicitly start an exploration session** from the side panel. It does not run in the background, monitor your browsing, or collect anything while you're not actively using it.
+## What's sent to the cloud
 
-## What gets stored and where
+| Data | When | Purpose |
+|------|------|---------|
+| rrweb recording events | `bw record` (after you stop) | Training input for manifest generation |
+| Recording metadata (domain, event count, size) | `bw record` | Dashboard display and training orchestration |
+| Execution metrics (route, duration, success/failure) | `bw run` (fire-and-forget) | Usage analytics for your dashboard |
+| Authentication tokens | `bw login` | Account authentication via Clerk |
 
-| Data | Where it's stored |
-|------|------------------|
-| Connection preferences (WebSocket host and port) | `chrome.storage.local` — on your device, inside Chrome |
-| Discovered APIs, snapshots, and manifests | Local filesystem, written by the CLI server |
+## LLM processing
 
-The extension itself does not write manifests or snapshots. That work is handled by the CLI server running on your machine, and everything it writes stays in your local filesystem.
+Your recordings are processed by a vision-capable LLM as part of the training pipeline. The LLM runs server-side in BrowserWire's infrastructure. The recording events are sent to the LLM provider (e.g., OpenAI, Anthropic) as part of the training process.
 
 ## DOM snapshot recording
 
-BrowserWire bundles [rrweb-record](https://github.com/rrweb-io/rrweb) (MIT license) to capture DOM snapshots during an exploration session. This library runs entirely client-side inside the extension's content script. It does not communicate with any external service.
+BrowserWire uses [rrweb](https://github.com/rrweb-io/rrweb) (MIT license) to capture DOM snapshots during recording. The library runs client-side in the Playwright browser and streams events to the CLI process.
+
+## No background collection
+
+BrowserWire does not run in the background. Recording only happens when you explicitly run `bw record` and press Enter to start. The CLI exits after each command completes.
 
 <Info>
   If you have questions about privacy or data handling, open an issue at [github.com/gearsec/browserwire](https://github.com/gearsec/browserwire).

@@ -1,166 +1,126 @@
 ---
 title: "Manifest"
-description: "A versioned, typed contract document that describes everything a site can do — its domain objects, callable operations, data views, and multi-step workflows."
+description: "The typed state machine that describes a site's pages, views, and actions."
 ---
 
-A **manifest** is the central artifact BrowserWire produces from a discovery session. It captures a complete, machine-readable description of what a website exposes: the objects on the page, the actions you can take, the data you can read, and the workflows that combine those actions into meaningful tasks.
+A **manifest** is the core artifact BrowserWire produces from training. It describes a website as a typed state machine — a set of pages (states), each with views you can read and actions you can execute.
 
-Your AI agent consumes the manifest (or the OpenAPI spec derived from it) to understand what a site can do and how to call it — without any manual wiring on your part.
+Your AI agent or automation script consumes the manifest indirectly through the local execution API served by `bw run`.
 
-<Info>
-The manifest is the source of truth for the OpenAPI spec served at `/api/sites/:slug/openapi.json`. Any change to the manifest is immediately reflected in the spec.
-</Info>
+## Structure
 
-## Sections
-
-A manifest is organized into six top-level sections. Each section is described below.
-
-<AccordionGroup>
-  <Accordion title="entities">
-    **Entities** are the domain objects BrowserWire identifies on the page — things like a login form, a product card, a navigation menu, or a search bar. Each entity groups related actions and views together.
-
-    An entity carries observable *signals* (role, text content, URL patterns, element attributes) that BrowserWire uses to reliably re-identify it across page loads. A vision LLM assigns a human-readable `semanticName` so the entity is meaningful to your agent.
-  </Accordion>
-
-  <Accordion title="actions">
-    **Actions** are callable operations bound to a specific entity — clicking a button, filling a field, submitting a form, selecting an option. Each action has:
-
-    - **Inputs** — typed parameters the operation accepts (`string`, `number`, `boolean`, or `enum`)
-    - **Preconditions** — guard checks that must pass before the action can run
-    - **Postconditions** — checks that verify the action succeeded
-    - **Locator set** — multiple targeting strategies (CSS, XPath, ARIA role, test ID) ranked by confidence, so the runtime can find the right element even if the page changes slightly
-  </Accordion>
-
-  <Accordion title="views">
-    **Views** are structured data extraction definitions. A view describes how to read information off the page — a list of search results, a table of transactions, a product's price and title — and maps each field to a typed value (`string`, `number`, `boolean`, or `date`).
-
-    Views can be static (the data is always present) or dynamic (the data depends on prior actions or inputs).
-  </Accordion>
-
-  <Accordion title="workflows">
-    **Workflows** are task-level APIs synthesized from discovered actions. A workflow chains multiple actions into a single callable operation — for example, navigating to a login page, filling in credentials, and submitting the form. See [Workflows](/concepts/workflows) for a full explanation.
-  </Accordion>
-
-  <Accordion title="pages">
-    **Pages** group entities, actions, and views by route. Each page definition records the URL pattern it matches, along with the IDs of the views and actions that live on that route. This lets your agent reason about which operations are available at a given URL.
-  </Accordion>
-
-  <Accordion title="errors">
-    **Errors** are typed failure definitions with stable codes. Each error carries a message template and a classification:
-
-    | Classification | Meaning |
-    |---|---|
-    | `recoverable` | The operation can be retried or handled gracefully |
-    | `fatal` | The operation cannot proceed; user intervention is needed |
-    | `security` | A security boundary was encountered (e.g. CAPTCHA, auth wall) |
-  </Accordion>
-</AccordionGroup>
-
-## Versioning
-
-Every manifest carries two version fields, both following [semver](https://semver.org):
-
-| Field | Purpose |
-|---|---|
-| `contractVersion` | The version of the BrowserWire contract schema itself. Increments when the manifest format changes in a breaking way. |
-| `manifestVersion` | The version of *this site's* manifest. Increments automatically when BrowserWire detects changes to entities, actions, or views after re-discovery. |
-
-Your agent can use `manifestVersion` to detect when a site's API has changed and decide whether to re-fetch the OpenAPI spec.
-
-<Tip>
-BrowserWire tracks compatibility between manifest versions and will flag breaking changes — for example, if a previously required action input is removed. You can inspect diffs via the `/api/sites/:slug/manifest` endpoint.
-</Tip>
-
-## Example
-
-Here is a minimal manifest for a site with a single login form:
+A manifest is organized around **states**. Each state represents a distinct page or screen on the site.
 
 ```json
 {
-  "contractVersion": "1.0.0",
-  "manifestVersion": "1.2.0",
-  "metadata": {
-    "id": "mf_01j9z2k",
-    "site": "example-com",
-    "createdAt": "2025-10-01T09:00:00Z",
-    "updatedAt": "2025-10-14T11:23:00Z"
-  },
-  "domain": "authentication",
-  "domainDescription": "A standard email/password login page with a persistent session.",
-  "entities": [
+  "id": "mf_abc123",
+  "domain": "example.com",
+  "origin": "https://example.com",
+  "slug": "example-com",
+  "states": [
     {
-      "id": "ent_login_form",
-      "name": "login_form",
-      "semanticName": "Login Form",
-      "description": "The primary authentication form on the sign-in page.",
-      "signals": [
-        { "kind": "role", "value": "form", "weight": 0.8 },
-        { "kind": "text", "value": "Sign in", "weight": 0.6 }
+      "id": "state_1",
+      "name": "HomePage",
+      "url_pattern": "https://example.com/",
+      "views": [
+        {
+          "name": "featured_products",
+          "code": "async (page) => { ... }"
+        }
       ],
-      "confidence": { "score": 0.92, "level": "high" },
-      "provenance": {
-        "source": "agent",
-        "sessionId": "sess_abc123",
-        "traceIds": ["trace_001"],
-        "annotationIds": [],
-        "capturedAt": "2025-10-01T09:00:00Z"
-      }
-    }
-  ],
-  "actions": [
+      "actions": [
+        {
+          "name": "click_login",
+          "inputs": [],
+          "code": "async (page, inputs) => { ... }"
+        }
+      ]
+    },
     {
-      "id": "act_fill_email",
-      "entityId": "ent_login_form",
-      "name": "fill_email",
-      "semanticName": "Fill email address",
-      "inputs": [
-        { "name": "email", "type": "string", "required": true, "description": "The user's email address" }
-      ],
-      "preconditions": [],
-      "postconditions": [],
-      "recipeRef": "recipe://login/fill_email/v1",
-      "locatorSet": {
-        "id": "ls_email_input",
-        "strategies": [
-          { "kind": "role_name", "value": "textbox:Email", "confidence": 0.95 },
-          { "kind": "css", "value": "input[type='email']", "confidence": 0.80 }
-        ]
-      },
-      "errors": [],
-      "confidence": { "score": 0.95, "level": "high" },
-      "provenance": {
-        "source": "agent",
-        "sessionId": "sess_abc123",
-        "traceIds": ["trace_001"],
-        "annotationIds": [],
-        "capturedAt": "2025-10-01T09:00:00Z"
-      }
+      "id": "state_2",
+      "name": "LoginPage",
+      "url_pattern": "https://example.com/login",
+      "views": [],
+      "actions": [
+        {
+          "name": "fill_email",
+          "inputs": [{ "name": "email", "type": "string" }],
+          "code": "async (page, inputs) => { ... }"
+        },
+        {
+          "name": "fill_password",
+          "inputs": [{ "name": "password", "type": "string" }],
+          "code": "async (page, inputs) => { ... }"
+        },
+        {
+          "name": "submit_login",
+          "inputs": [
+            { "name": "email", "type": "string" },
+            { "name": "password", "type": "string" }
+          ],
+          "code": "async (page, inputs) => { ... }"
+        }
+      ]
     }
-  ],
-  "views": [],
-  "pages": [
-    {
-      "id": "page_login",
-      "routePattern": "/login",
-      "name": "login_page",
-      "description": "The sign-in page.",
-      "viewIds": [],
-      "actionIds": ["act_fill_email"]
-    }
-  ],
-  "workflowActions": [],
-  "errors": []
+  ]
 }
 ```
 
-## Relationship to the OpenAPI spec
+## States
 
-BrowserWire generates an OpenAPI 3.0 spec directly from the manifest. Every workflow becomes a `POST` endpoint, every view becomes a `GET` endpoint, and every action schema maps to a request body or query parameter definition.
+Each state has:
 
-You can fetch the spec at any time:
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Unique identifier for the state |
+| `name` | `string` | Semantic name assigned by the AI (e.g., `HomePage`, `SearchResults`) |
+| `url_pattern` | `string` | RFC 6570 URI template for navigating to this state |
+| `views` | `array` | Data extraction functions available on this page |
+| `actions` | `array` | Interactions that can be performed on this page |
 
-```bash
-curl http://localhost:8787/api/sites/example-com/openapi.json
+## Views
+
+A view reads structured data from a page. When you call a view endpoint, the execution server navigates to the state's URL, waits for the page to settle, and runs the view's code against the live DOM.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | `string` | View identifier (e.g., `product_list`, `order_summary`) |
+| `code` | `string` | Playwright function that extracts and returns data |
+
+Views are exposed as `GET` endpoints:
+```
+GET /api/sites/:slug/views/:state/:view
 ```
 
-Point your agent at this URL and it can discover and call every available operation without any additional configuration.
+## Actions
+
+An action performs an interaction on a page — clicking a button, filling a form field, or submitting data. Actions can accept typed inputs.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | `string` | Action identifier (e.g., `click_login`, `submit_form`) |
+| `inputs` | `array` | Parameters the action accepts (name, type) |
+| `code` | `string` | Playwright function that performs the interaction |
+
+Actions are exposed as `POST` endpoints:
+```
+POST /api/sites/:slug/actions/:state/:action
+```
+
+## How execution works
+
+When you call an endpoint on the local server (`bw run`):
+
+1. The server looks up the manifest for the site slug
+2. Finds the target state and view/action
+3. Opens a new browser page
+4. Navigates to the state's URL (expanding any RFC 6570 template variables with your inputs)
+5. Waits for the DOM to settle (using a MutationObserver-based debounce)
+6. Executes the view or action code
+7. Returns the result as JSON
+
+The browser page is closed after each request. Multiple requests can run concurrently up to the `--max-concurrent` limit (default: 3).
+
+## Dashboard view
+
+The [dashboard](/guides/dashboard) shows each manifest's endpoints with copy-ready curl commands. Navigate to **APIs** and click a domain to see all available views and actions organized by state.

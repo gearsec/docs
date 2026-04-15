@@ -1,13 +1,13 @@
 ---
 title: "Health Check"
-description: "Verify that the BrowserWire server is running and ready to accept requests."
+description: "Verify that the local execution server is running."
 ---
 
 ## `GET /api/health`
 
-Returns `200 OK` with `{ "ok": true }` as soon as the server is up. Use this endpoint for readiness checks, uptime monitoring, or to confirm the server started correctly before issuing other requests.
+Returns `200 OK` with `{ "ok": true }` when the server is running. Use this for readiness checks or to confirm `bw run` started correctly.
 
-No authentication or parameters are required.
+No authentication or parameters required.
 
 ## Example
 
@@ -26,5 +26,5 @@ curl http://127.0.0.1:8787/api/health
 </CodeGroup>
 
 <Note>
-  If the server is not running, the request will be refused at the TCP level — you will not receive an HTTP response at all. A `200` response here means the process is alive and the HTTP handler is active.
+  If the server is not running, the request will be refused at the TCP level — you won't receive an HTTP response. A `200` response means `bw run` is alive and accepting requests.
 </Note>

@@ -1,0 +1,50 @@
+---
+title: "Recording"
+description: "How BrowserWire captures browser sessions as structured training data."
+---
+
+A **recording** is BrowserWire's raw training data — a captured browser session that the AI training pipeline uses to learn a site's structure. You create recordings with the `bw record` command.
+
+## How recording works
+
+When you run `bw record <url>`, BrowserWire:
+
+1. **Launches a Chrome browser** via Playwright and navigates to the URL you specified.
+2. **Waits for you to start** — you can browse freely before recording begins. Press **Enter** to start.
+3. **Captures DOM events** — once recording starts, BrowserWire injects [rrweb](https://www.rrweb.io/) into the page. Every DOM mutation, scroll, click, navigation, and form interaction is captured as a structured event stream in real time.
+4. **Follows navigations** — if you click a link that opens a new tab, BrowserWire redirects it into the same page so the recording stays continuous.
+5. **Stops on Enter** — press **Enter** again to stop recording. BrowserWire reloads the page at the start of recording to get a clean initial snapshot.
+
+## What gets captured
+
+| Data | Description |
+|------|-------------|
+| **DOM snapshots** | Full page structure at recording start, plus incremental mutations |
+| **User interactions** | Clicks, keypresses, form fills, scrolls |
+| **Navigations** | URL changes, page loads, SPA route transitions |
+| **Event metadata** | Timestamps, event types, element targets |
+
+Recordings are stored as JSON arrays of rrweb events. They do **not** contain screenshots, network requests, or cookies.
+
+## Upload and training
+
+After you stop recording, the CLI:
+
+1. Authenticates (prompts for login if your token has expired)
+2. Uploads the recording events to BrowserWire's cloud storage
+3. Triggers a training run automatically
+4. Opens the dashboard so you can monitor progress
+
+The recording metadata (domain, event count, size) is stored in your BrowserWire account and visible in the [dashboard](/guides/dashboard).
+
+## Tips for better recordings
+
+- **Cover key paths** — focus on the flows you want to automate (login, search, checkout, etc.)
+- **Navigate slowly** — let pages fully load before interacting. The AI needs stable DOM snapshots.
+- **Interact with dynamic UI** — open dropdowns, expand accordions, trigger modals. State changes help the AI discover more actions.
+- **Use a real account** — if the site requires authentication, log in during the recording so the AI can see authenticated pages.
+- **Re-record to improve** — you can record the same site multiple times. Each recording triggers a new training run that can improve or update the manifest.
+
+<Note>
+  Recordings are uploaded to BrowserWire's cloud for processing. They contain DOM structure and interaction events from the sites you record. See [Privacy](/reference/privacy) for details.
+</Note>
